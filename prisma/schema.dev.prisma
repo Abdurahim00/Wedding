@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Booking {
+  id              String   @id @default(cuid())
+  name            String
+  email           String
+  phone           String
+  guestCount      Int
+  eventType       String
+  specialRequests String?
+  date            DateTime
+  price           Float
+  status          String   @default("pending")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  payment         Payment?
+  
+  @@index([date])
+  @@index([status])
+  @@index([email])
+}
+
+model Payment {
+  id              String   @id @default(cuid())
+  bookingId       String   @unique
+  amount          Float
+  stripePaymentId String?
+  status          String   @default("pending")
+  createdAt       DateTime @default(now())
+  
+  booking         Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  
+  @@index([status])
+  @@index([stripePaymentId])
+}
+
+model DatePrice {
+  id              String   @id @default(cuid())
+  date            DateTime @unique
+  price           Float
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([date])
+}
+
+model Admin {
+  id              String   @id @default(cuid())
+  username        String   @unique
+  passwordHash    String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model VenueSettings {
+  id              String   @id @default(cuid())
+  videoUrl        String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
