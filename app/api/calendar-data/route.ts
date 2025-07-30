@@ -102,6 +102,7 @@ export async function POST(request: NextRequest) {
       })
     )
     
+    // Return results array directly
     return NextResponse.json({ dates: results })
   } catch (error) {
     console.error('Error fetching calendar data:', error)
