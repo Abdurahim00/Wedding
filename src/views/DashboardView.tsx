@@ -226,7 +226,7 @@ export default function DashboardView() {
         <section id="about" className="py-24 px-4 bg-white">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-4xl lg:text-5xl font-serif text-gray-900 mb-4">About Bella Vista</h2>
+              <h2 className="text-4xl lg:text-5xl font-serif text-gray-900 mb-4">About Mazzika Fest</h2>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
                 Where timeless elegance meets modern luxury, creating the perfect backdrop for your special day
               </p>
@@ -288,7 +288,7 @@ export default function DashboardView() {
                   <div>
                     <h3 className="text-xl font-semibold mb-2">Picture-Perfect Settings</h3>
                     <p className="text-gray-600">
-                      From manicured gardens to elegant ballrooms, every corner of Bella Vista 
+                      From manicured gardens to elegant ballrooms, every corner of Mazzika Fest 
                       provides stunning backdrops for your wedding photography.
                     </p>
                   </div>
@@ -390,7 +390,7 @@ export default function DashboardView() {
                     <div className="flex items-start gap-4">
                       <MapPin className="w-5 h-5 text-purple-600 mt-1" />
                       <div>
-                        <p className="font-medium">Bella Vista Estate</p>
+                        <p className="font-medium">Mazzika Fest Estate</p>
                         <p className="text-gray-600">123 Wedding Lane, Beverly Hills, CA 90210</p>
                       </div>
                     </div>
@@ -407,7 +407,7 @@ export default function DashboardView() {
                       <Mail className="w-5 h-5 text-purple-600 mt-1" />
                       <div>
                         <p className="font-medium">Email</p>
-                        <p className="text-gray-600">hello@bellavista.com</p>
+                        <p className="text-gray-600">hello@mazzikafest.com</p>
                       </div>
                     </div>
                     
@@ -425,7 +425,7 @@ export default function DashboardView() {
                 <div className="glass-morphism rounded-3xl p-8">
                   <h3 className="text-xl font-semibold mb-4">Schedule a Tour</h3>
                   <p className="text-gray-600 mb-6">
-                    Experience the beauty of Bella Vista firsthand. Book a private tour with our 
+                    Experience the beauty of Mazzika Fest firsthand. Book a private tour with our 
                     wedding specialists and explore our stunning venues, gardens, and facilities.
                   </p>
                   <Button variant="outline" className="w-full rounded-xl py-4">

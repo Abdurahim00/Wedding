@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { DollarSign, CalendarDays, CalendarX, Settings, Plus, Trash2 } from 'lucide-react'
 import { format, addDays, isWeekend, startOfMonth, endOfMonth } from 'date-fns'
+import { sv } from 'date-fns/locale'
 import { DatePriceModel } from '@/src/models/DatePriceModel'
 
 interface PricingRule {
@@ -81,7 +82,7 @@ export default function DateManagementView() {
     
     const priceValue = parseFloat(price)
     if (isNaN(priceValue) || priceValue < 3) {
-      alert('Please enter a valid price (minimum 3 SEK)')
+      alert('Ange ett giltigt pris (minst 3 SEK)')
       return
     }
     
@@ -103,19 +104,19 @@ export default function DateManagementView() {
       }
     } catch (error) {
       console.error('Failed to update date:', error)
-      alert('Failed to update date. Please try again.')
+      alert('Misslyckades att uppdatera datum. Försök igen.')
     }
   }
   
   const handleBulkUpdate = async () => {
     if (!bulkStartDate || !bulkEndDate || !bulkPrice) {
-      alert('Please select date range and price')
+      alert('Välj datumintervall och pris')
       return
     }
     
     const priceValue = parseFloat(bulkPrice)
     if (isNaN(priceValue) || priceValue < 3) {
-      alert('Please enter a valid price (minimum 3 SEK)')
+      alert('Ange ett giltigt pris (minst 3 SEK)')
       return
     }
     
@@ -149,7 +150,7 @@ export default function DateManagementView() {
   
   const handleCreateRule = async () => {
     if (!newRule.name || !newRule.price) {
-      alert('Please fill in all required fields')
+      alert('Fyll i alla obligatoriska fält')
       return
     }
     
@@ -218,23 +219,23 @@ export default function DateManagementView() {
   return (
     <Tabs defaultValue="single" className="space-y-4">
       <TabsList className="grid w-full grid-cols-3">
-        <TabsTrigger value="single">Single Date</TabsTrigger>
-        <TabsTrigger value="bulk">Bulk Operations</TabsTrigger>
-        <TabsTrigger value="rules">Pricing Rules</TabsTrigger>
+        <TabsTrigger value="single">Enskilt datum</TabsTrigger>
+        <TabsTrigger value="bulk">Bulkoperationer</TabsTrigger>
+        <TabsTrigger value="rules">Prisregler</TabsTrigger>
       </TabsList>
       
       <TabsContent value="single">
         <Card>
           <CardHeader>
-            <CardTitle>Manage Individual Dates</CardTitle>
+            <CardTitle>Hantera enskilda datum</CardTitle>
             <CardDescription>
-              Set prices and availability for specific dates
+              Sätt priser och tillgänglighet för specifika datum
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid lg:grid-cols-2 gap-8">
               <div>
-                <Label className="text-base font-semibold mb-4 block">Select Date</Label>
+                <Label className="text-base font-semibold mb-4 block">Välj datum</Label>
                 <Calendar
                   mode="single"
                   selected={selectedDate}
@@ -256,12 +257,12 @@ export default function DateManagementView() {
               <div className="space-y-6">
                 <div>
                   <Label className="text-base font-semibold mb-2 block">
-                    Settings for {selectedDate ? format(selectedDate, 'MMMM d, yyyy') : 'Selected Date'}
+                    Inställningar för {selectedDate ? format(selectedDate, 'd MMMM yyyy', { locale: sv }) : 'valt datum'}
                   </Label>
                   
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="price">Price (SEK)</Label>
+                      <Label htmlFor="price">Pris (SEK)</Label>
                       <div className="relative">
                         <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                         <Input
@@ -277,7 +278,7 @@ export default function DateManagementView() {
                     </div>
                     
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="available">Available for Booking</Label>
+                      <Label htmlFor="available">Tillgänglig för bokning</Label>
                       <Switch
                         id="available"
                         checked={isAvailable}
@@ -291,13 +292,13 @@ export default function DateManagementView() {
                     className="w-full mt-4"
                     disabled={!selectedDate}
                   >
-                    Update Date
+                    Uppdatera datum
                   </Button>
                   
                   {showSuccess && (
                     <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
                       <p className="text-green-800 text-sm font-medium">
-                        ✓ Date updated successfully!
+                        ✓ Datum uppdaterat!
                       </p>
                     </div>
                   )}
@@ -311,16 +312,16 @@ export default function DateManagementView() {
       <TabsContent value="bulk">
         <Card>
           <CardHeader>
-            <CardTitle>Bulk Date Management</CardTitle>
+            <CardTitle>Bulkhantering av datum</CardTitle>
             <CardDescription>
-              Update multiple dates at once
+              Uppdatera flera datum samtidigt
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <Label>Start Date</Label>
+                  <Label>Startdatum</Label>
                   <Calendar
                     mode="single"
                     selected={bulkStartDate}
@@ -329,7 +330,7 @@ export default function DateManagementView() {
                   />
                 </div>
                 <div>
-                  <Label>End Date</Label>
+                  <Label>Slutdatum</Label>
                   <Calendar
                     mode="single"
                     selected={bulkEndDate}
@@ -342,7 +343,7 @@ export default function DateManagementView() {
               
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="bulkPrice">Price for all dates (SEK)</Label>
+                  <Label htmlFor="bulkPrice">Pris för alla datum (SEK)</Label>
                   <Input
                     id="bulkPrice"
                     type="number"
@@ -353,7 +354,7 @@ export default function DateManagementView() {
                   />
                 </div>
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="bulkAvailable">Available for Booking</Label>
+                  <Label htmlFor="bulkAvailable">Tillgänglig för bokning</Label>
                   <Switch
                     id="bulkAvailable"
                     checked={bulkAvailable}
@@ -367,8 +368,8 @@ export default function DateManagementView() {
                 className="w-full"
                 disabled={!bulkStartDate || !bulkEndDate || !bulkPrice}
               >
-                Update {bulkStartDate && bulkEndDate ? 
-                  Math.ceil((bulkEndDate.getTime() - bulkStartDate.getTime()) / (1000 * 60 * 60 * 24)) + 1 : 0} Dates
+                Uppdatera {bulkStartDate && bulkEndDate ? 
+                  Math.ceil((bulkEndDate.getTime() - bulkStartDate.getTime()) / (1000 * 60 * 60 * 24)) + 1 : 0} datum
               </Button>
             </div>
           </CardContent>
@@ -379,24 +380,24 @@ export default function DateManagementView() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Create Pricing Rule</CardTitle>
+              <CardTitle>Skapa prisregel</CardTitle>
               <CardDescription>
-                Set automatic pricing based on day type or season
+                Sätt automatisk prissättning baserat på dagtyp eller säsong
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <Label>Rule Name</Label>
+                    <Label>Regelnamn</Label>
                     <Input
                       value={newRule.name}
                       onChange={(e) => setNewRule({...newRule, name: e.target.value})}
-                      placeholder="e.g., Weekend Pricing"
+                      placeholder="t.ex. Helgpriser"
                     />
                   </div>
                   <div>
-                    <Label>Rule Type</Label>
+                    <Label>Regeltyp</Label>
                     <Select
                       value={newRule.type}
                       onValueChange={(value: any) => setNewRule({...newRule, type: value})}
@@ -405,10 +406,10 @@ export default function DateManagementView() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="weekend">Weekend</SelectItem>
-                        <SelectItem value="weekday">Weekday</SelectItem>
-                        <SelectItem value="season">Season</SelectItem>
-                        <SelectItem value="holiday">Holiday</SelectItem>
+                        <SelectItem value="weekend">Helg</SelectItem>
+                        <SelectItem value="weekday">Vardag</SelectItem>
+                        <SelectItem value="season">Säsong</SelectItem>
+                        <SelectItem value="holiday">Helgdag</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -416,7 +417,7 @@ export default function DateManagementView() {
                 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <Label>Price (SEK)</Label>
+                    <Label>Pris (SEK)</Label>
                     <Input
                       type="number"
                       min="3"
@@ -425,7 +426,7 @@ export default function DateManagementView() {
                     />
                   </div>
                   <div>
-                    <Label>Priority</Label>
+                    <Label>Prioritet</Label>
                     <Input
                       type="number"
                       value={newRule.priority}
@@ -436,7 +437,7 @@ export default function DateManagementView() {
                 
                 <Button onClick={handleCreateRule} className="w-full">
                   <Plus className="h-4 w-4 mr-2" />
-                  Create Rule
+                  Skapa regel
                 </Button>
               </div>
             </CardContent>
@@ -444,7 +445,7 @@ export default function DateManagementView() {
           
           <Card>
             <CardHeader>
-              <CardTitle>Active Pricing Rules</CardTitle>
+              <CardTitle>Aktiva prisregler</CardTitle>
               <CardDescription>
                 Rules are applied in priority order (highest first)
               </CardDescription>

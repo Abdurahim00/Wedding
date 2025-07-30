@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { writeFile, mkdir } from 'fs/promises'
-import path from 'path'
 import { prisma } from '@/src/lib/prisma'
+import { withWeddingSchema } from '@/src/lib/db-utils'
+import { uploadVideoToSupabase } from '@/src/lib/supabase-storage'
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,46 +24,34 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Check file size (4MB limit for Vercel)
-    const maxSize = 4 * 1024 * 1024
+    // No size limit needed for Supabase Storage (up to 5GB)
+    const maxSize = 500 * 1024 * 1024 // 500MB
     if (file.size > maxSize) {
       return NextResponse.json(
-        { error: 'File size exceeds 4MB limit. Please use a smaller video or compress it.' },
+        { error: 'File size exceeds 500MB limit.' },
         { status: 400 }
       )
     }
     
-    // Create uploads directory if it doesn't exist
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'videos')
-    await mkdir(uploadsDir, { recursive: true })
-    
-    // Generate unique filename
-    const timestamp = Date.now()
-    const extension = path.extname(file.name)
-    const filename = `venue-video-${timestamp}${extension}`
-    const filepath = path.join(uploadsDir, filename)
-    
-    // Convert file to buffer and save
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-    await writeFile(filepath, buffer)
+    // Upload to Supabase Storage
+    const videoUrl = await uploadVideoToSupabase(file)
     
     // Save video URL to database
-    const videoUrl = `/uploads/videos/${filename}`
-    
-    // Check if settings exist
-    const existingSettings = await prisma.venueSettings.findFirst()
-    
-    if (existingSettings) {
-      await prisma.venueSettings.update({
-        where: { id: existingSettings.id },
-        data: { videoUrl }
-      })
-    } else {
-      await prisma.venueSettings.create({
-        data: { videoUrl }
-      })
-    }
+    await withWeddingSchema(async () => {
+      // Check if settings exist
+      const existingSettings = await prisma.venueSettings.findFirst()
+      
+      if (existingSettings) {
+        await prisma.venueSettings.update({
+          where: { id: existingSettings.id },
+          data: { videoUrl }
+        })
+      } else {
+        await prisma.venueSettings.create({
+          data: { videoUrl }
+        })
+      }
+    })
     
     return NextResponse.json({
       success: true,

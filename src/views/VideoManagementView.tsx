@@ -63,19 +63,19 @@ export default function VideoManagementView() {
     if (!validTypes.includes(file.type)) {
       console.log('Invalid file type:', file.type)
       toast({
-        title: "Invalid file type",
-        description: "Please select a valid video file (MP4, WebM, or OGG)",
+        title: "Ogiltig filtyp",
+        description: "Välj en giltig videofil (MP4, WebM eller OGG)",
         variant: "destructive"
       })
       return
     }
 
-    // Check file size (4MB limit for Vercel)
-    const maxSize = 4 * 1024 * 1024 // 4MB in bytes
+    // Check file size (500MB limit with Supabase)
+    const maxSize = 500 * 1024 * 1024 // 500MB in bytes
     if (file.size > maxSize) {
       toast({
-        title: "File too large",
-        description: "File size exceeds 4MB limit. Please compress your video or use a shorter clip.",
+        title: "Filen är för stor",
+        description: "Filstorleken överskrider gränsen på 500MB.",
         variant: "destructive"
       })
       return
@@ -110,8 +110,8 @@ export default function VideoManagementView() {
         setUploadStatus('success')
         
         toast({
-          title: "Success!",
-          description: "Video uploaded successfully and saved to database",
+          title: "Klart!",
+          description: "Videon har laddats upp och sparats i databasen",
           variant: "default"
         })
         
@@ -132,8 +132,8 @@ export default function VideoManagementView() {
       console.error('Error uploading video:', error)
       setUploadStatus('error')
       toast({
-        title: "Upload failed",
-        description: error instanceof Error ? error.message : "Failed to upload video. Please try again.",
+        title: "Uppladdning misslyckades",
+        description: error instanceof Error ? error.message : "Misslyckades att ladda upp video. Försök igen.",
         variant: "destructive"
       })
       setTimeout(() => setUploadStatus('idle'), 3000)
@@ -169,7 +169,7 @@ export default function VideoManagementView() {
         return (
           <Alert>
             <AlertCircleIcon className="h-4 w-4 animate-spin" />
-            <AlertDescription>Uploading video...</AlertDescription>
+            <AlertDescription>Laddar upp video...</AlertDescription>
           </Alert>
         )
       case 'success':
@@ -177,7 +177,7 @@ export default function VideoManagementView() {
           <Alert className="border-green-500 bg-green-50 shadow-lg">
             <CheckCircleIcon className="h-5 w-5 text-green-600 animate-pulse" />
             <AlertDescription className="text-green-800 font-semibold text-base">
-              Video uploaded successfully! Your video is now live on the main page.
+              Videon har laddats upp! Din video visas nu på huvudsidan.
             </AlertDescription>
           </Alert>
         )
@@ -186,7 +186,7 @@ export default function VideoManagementView() {
           <Alert className="border-red-200 bg-red-50">
             <XCircleIcon className="h-4 w-4 text-red-600" />
             <AlertDescription className="text-red-800">
-              Please select a valid video file (MP4, WebM, or OGG)
+              Välj en giltig videofil (MP4, WebM eller OGG)
             </AlertDescription>
           </Alert>
         )
@@ -200,9 +200,9 @@ export default function VideoManagementView() {
       {/* Current Video */}
       <Card>
         <CardHeader>
-          <CardTitle>Current Homepage Video</CardTitle>
+          <CardTitle>Nuvarande startsidovideo</CardTitle>
           <CardDescription>
-            This video is displayed on the main booking page
+            Denna video visas på huvudbokningssidan
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -239,7 +239,7 @@ export default function VideoManagementView() {
               <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
                 <div className="text-center">
                   <VideoIcon className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-500">No video uploaded</p>
+                  <p className="text-gray-500">Ingen video uppladdad</p>
                 </div>
               </div>
             )}
@@ -250,9 +250,9 @@ export default function VideoManagementView() {
       {/* Upload New Video */}
       <Card>
         <CardHeader>
-          <CardTitle>Upload New Video</CardTitle>
+          <CardTitle>Ladda upp ny video</CardTitle>
           <CardDescription>
-            Replace the current homepage video with a new one
+            Ersätt den nuvarande startsidovideon med en ny
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -260,7 +260,7 @@ export default function VideoManagementView() {
             {getStatusAlert()}
 
             <div className="space-y-2">
-              <Label>Select Video File</Label>
+              <Label>Välj videofil</Label>
               
               {/* Simplest possible file input */}
               <input
@@ -271,7 +271,7 @@ export default function VideoManagementView() {
               />
               
               <p className="text-xs text-muted-foreground">
-                Supported formats: MP4, WebM, OGG (Max 100MB)
+                Format som stöds: MP4, WebM, OGG (Max 500MB med Supabase Storage)
               </p>
             </div>
 
@@ -292,14 +292,14 @@ export default function VideoManagementView() {
                     className="flex-1"
                   >
                     <UploadIcon className="h-4 w-4 mr-2" />
-                    {uploadStatus === 'uploading' ? 'Uploading...' : 'Upload Video'}
+                    {uploadStatus === 'uploading' ? 'Laddar upp...' : 'Ladda upp video'}
                   </Button>
                   <Button 
                     variant="outline" 
                     onClick={handleCancel}
                     disabled={uploadStatus === 'uploading'}
                   >
-                    Cancel
+                    Avbryt
                   </Button>
                 </div>
               </div>
@@ -311,29 +311,29 @@ export default function VideoManagementView() {
       {/* Video Guidelines */}
       <Card>
         <CardHeader>
-          <CardTitle>Video Guidelines</CardTitle>
+          <CardTitle>Videoriktlinjer</CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li className="flex items-start">
               <span className="mr-2">•</span>
-              <span>Recommended resolution: 1920x1080 (16:9 aspect ratio)</span>
+              <span>Rekommenderad upplösning: 1920x1080 (16:9 bildformat)</span>
             </li>
             <li className="flex items-start">
               <span className="mr-2">•</span>
-              <span>Keep file size under 100MB for optimal loading times</span>
+              <span>Håll filstorleken under 500MB (Supabase Storage gräns)</span>
             </li>
             <li className="flex items-start">
               <span className="mr-2">•</span>
-              <span>Use high-quality footage that showcases your venue</span>
+              <span>Använd högkvalitativa bilder som visar upp din lokal</span>
             </li>
             <li className="flex items-start">
               <span className="mr-2">•</span>
-              <span>Ensure good lighting and stable camera work</span>
+              <span>Se till att ha bra ljus och stabilt kameraarbete</span>
             </li>
             <li className="flex items-start">
               <span className="mr-2">•</span>
-              <span>Consider adding soft background music (video will autoplay muted)</span>
+              <span>Överväg att lägga till mjuk bakgrundsmusik (videon spelas upp tyst)</span>
             </li>
           </ul>
         </CardContent>

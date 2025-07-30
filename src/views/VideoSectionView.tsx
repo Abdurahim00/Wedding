@@ -82,7 +82,7 @@ export default function VideoSectionView() {
                 <div className="text-center">
                   <PlayCircle className="w-16 h-16 text-white/30 mx-auto mb-6" />
                   <h2 className="text-4xl font-serif text-white/80 font-light">
-                    Bella Vista
+                    Mazzika Fest
                   </h2>
                   <p className="text-base text-white/60 mt-2">Experience Luxury</p>
                 </div>

@@ -207,9 +207,9 @@ export default function FinancialAnalyticsView() {
                   />
                 </div>
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{month.bookingCount} bookings</span>
-                  <span>{month.guestCount} guests</span>
-                  <span>Avg. {formatCurrency(month.avgBookingValue)}</span>
+                  <span>{month.bookingCount} bokningar</span>
+                  <span>{month.guestCount} gäster</span>
+                  <span>Genomsnitt {formatCurrency(month.avgBookingValue)}</span>
                 </div>
               </div>
             ))}
@@ -220,8 +220,8 @@ export default function FinancialAnalyticsView() {
       {/* Event Type Breakdown */}
       <Card>
         <CardHeader>
-          <CardTitle>Event Type Distribution</CardTitle>
-          <CardDescription>Revenue by event type</CardDescription>
+          <CardTitle>Fördelning per evenemangstyp</CardTitle>
+          <CardDescription>Intäkter per evenemangstyp</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -233,7 +233,13 @@ export default function FinancialAnalyticsView() {
               return (
                 <div key={eventType} className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium capitalize">{eventType}</span>
+                    <span className="text-sm font-medium capitalize">{
+                      eventType === 'wedding' ? 'Bröllop' :
+                      eventType === 'engagement' ? 'Förlovning' :
+                      eventType === 'anniversary' ? 'Jubileum' :
+                      eventType === 'other' ? 'Annat' :
+                      eventType
+                    }</span>
                     <span className="text-sm">{formatCurrency(typeRevenue)} ({percentage.toFixed(1)}%)</span>
                   </div>
                   <div className="relative h-4 bg-gray-100 rounded-full overflow-hidden">
