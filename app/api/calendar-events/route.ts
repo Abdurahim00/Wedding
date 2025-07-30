@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic'
+
 // Store active connections
 const clients = new Set<ReadableStreamDefaultController>()
 
