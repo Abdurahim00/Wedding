@@ -66,12 +66,45 @@ export const api = {
     return data.available
   },
 
+  // Calendar Data (batch endpoint for efficiency)
+  async getCalendarData(dates: Date[]): Promise<Map<string, { available: boolean; price: number }>> {
+    try {
+      const response = await fetch('/api/calendar-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          dates: dates.map(d => d.toISOString()) 
+        })
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch calendar data')
+      }
+      
+      const data = await response.json()
+      const result = new Map<string, { available: boolean; price: number }>()
+      
+      data.dates.forEach((item: any) => {
+        const date = new Date(item.date)
+        result.set(date.toDateString(), {
+          available: item.available,
+          price: item.price
+        })
+      })
+      
+      return result
+    } catch (error) {
+      console.error('Error fetching calendar data:', error)
+      return new Map()
+    }
+  },
+  
   // Date Prices
   async getDatePrice(date: Date): Promise<number> {
     const response = await fetch(`/api/date-prices?date=${date.toISOString()}`)
     
     if (!response.ok) {
-      return 3 // Default price
+      return 5000 // Default price
     }
     
     const data = await response.json()

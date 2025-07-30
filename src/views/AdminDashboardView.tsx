@@ -18,23 +18,47 @@ import {
   CheckCircleIcon,
   ClockIcon,
   XCircleIcon,
-  TagIcon
+  TagIcon,
+  Settings
 } from 'lucide-react'
 import BookingsManagementView from './BookingsManagementView'
 import FinancialAnalyticsView from './FinancialAnalyticsView'
 import VideoManagementView from './VideoManagementView'
-import DatePricingView from './DatePricingView'
+import DateManagementView from './DateManagementView'
 import { useStore } from '@/src/services/clientStore'
 
 export default function AdminDashboardView() {
   const { isAuthenticated, isLoading, login, logout } = useAdminAuth()
   const router = useRouter()
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [loginError, setLoginError] = useState(false)
   const store = useStore()
+  const [bookings, setBookings] = useState<any[]>([])
+  const [statsLoading, setStatsLoading] = useState(true)
+
+  // Fetch bookings on mount
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchBookings()
+    }
+  }, [isAuthenticated])
+
+  const fetchBookings = async () => {
+    try {
+      const response = await fetch('/api/bookings')
+      if (response.ok) {
+        const data = await response.json()
+        setBookings(data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch bookings:', error)
+    } finally {
+      setStatsLoading(false)
+    }
+  }
 
   // Get summary stats
-  const bookings = store.bookingModel.getAllBookings()
   const totalBookings = bookings.length
   const confirmedBookings = bookings.filter(b => b.status === 'confirmed').length
   const pendingBookings = bookings.filter(b => b.status === 'pending').length
@@ -45,13 +69,14 @@ export default function AdminDashboardView() {
     .filter(b => b.status === 'confirmed')
     .reduce((sum, booking) => sum + booking.price, 0)
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    const success = login(password)
+    const success = await login(username, password)
     if (!success) {
       setLoginError(true)
       setTimeout(() => setLoginError(false), 3000)
     }
+    setUsername('')
     setPassword('')
   }
 
@@ -74,22 +99,36 @@ export default function AdminDashboardView() {
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <Input
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Enter username"
+                  className={loginError ? 'border-red-500' : ''}
+                />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter admin password"
+                  placeholder="Enter password"
                   className={loginError ? 'border-red-500' : ''}
                 />
                 {loginError && (
-                  <p className="text-sm text-red-500">Invalid password</p>
+                  <p className="text-sm text-red-500">Invalid credentials</p>
                 )}
               </div>
               <Button type="submit" className="w-full">
                 Login
               </Button>
+              <p className="text-xs text-center text-muted-foreground mt-2">
+                Default: admin / admin123
+              </p>
             </form>
           </CardContent>
         </Card>
@@ -164,9 +203,9 @@ export default function AdminDashboardView() {
               <CalendarIcon className="h-4 w-4 mr-2" />
               Bookings
             </TabsTrigger>
-            <TabsTrigger value="pricing">
-              <TagIcon className="h-4 w-4 mr-2" />
-              Pricing
+            <TabsTrigger value="dates">
+              <Settings className="h-4 w-4 mr-2" />
+              Dates
             </TabsTrigger>
             <TabsTrigger value="analytics">
               <TrendingUpIcon className="h-4 w-4 mr-2" />
@@ -182,8 +221,8 @@ export default function AdminDashboardView() {
             <BookingsManagementView />
           </TabsContent>
 
-          <TabsContent value="pricing">
-            <DatePricingView />
+          <TabsContent value="dates">
+            <DateManagementView />
           </TabsContent>
 
           <TabsContent value="analytics">

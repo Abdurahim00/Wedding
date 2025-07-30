@@ -1,12 +1,12 @@
 "use client"
 
-import { useEffect } from 'react'
+import { useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useStore } from '@/src/services/clientStore'
 import { CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
-export default function PaymentSuccessPage() {
+function PaymentSuccessContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const store = useStore()
@@ -64,5 +64,17 @@ export default function PaymentSuccessPage() {
         </Button>
       </div>
     </div>
+  )
+}
+
+export default function PaymentSuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      </div>
+    }>
+      <PaymentSuccessContent />
+    </Suspense>
   )
 }

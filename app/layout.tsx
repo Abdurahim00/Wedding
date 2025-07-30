@@ -5,8 +5,8 @@ import { ThemeProvider } from '@/components/theme-provider'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Bella Vista - Wedding Venue Booking',
-  description: 'Book your perfect wedding venue at Bella Vista',
+  title: 'Mazzika Fest - Boka Bröllopslokal',
+  description: 'Boka din perfekta bröllopslokal hos Mazzika Fest',
 }
 
 export default function RootLayout({

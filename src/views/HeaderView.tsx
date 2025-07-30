@@ -32,7 +32,7 @@ export default function HeaderView() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <h1 className="text-2xl font-serif text-gray-900 font-medium">Bella Vista</h1>
+            <h1 className="text-2xl font-serif text-gray-900 font-medium">Mazzika Fest</h1>
           </div>
 
           {/* Desktop Navigation */}
@@ -41,13 +41,13 @@ export default function HeaderView() {
               onClick={() => scrollToSection('about')}
               className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium"
             >
-              About Us
+              Om oss
             </button>
             <button
               onClick={() => scrollToSection('contact')}
               className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium"
             >
-              Contact Us
+              Kontakta oss
             </button>
           </nav>
 
@@ -57,7 +57,7 @@ export default function HeaderView() {
               variant="ghost"
               size="icon"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Toggle mobile menu"
+              aria-label="Växla mobilmeny"
             >
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </Button>

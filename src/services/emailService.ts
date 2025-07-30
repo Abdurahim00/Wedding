@@ -25,9 +25,9 @@ export class EmailService {
       // In production with Resend configured
       if (this.resend) {
         const { data, error } = await this.resend.emails.send({
-          from: process.env.EMAIL_FROM || 'Bella Vista <noreply@bellavista.com>',
+          from: process.env.EMAIL_FROM || 'Mazzika Fest <noreply@mazzikafest.com>',
           to: [email],
-          subject: 'Booking Confirmation - Bella Vista Wedding Venue',
+          subject: 'Booking Confirmation - Mazzika Fest Wedding Venue',
           html: emailContent,
         })
 
@@ -43,8 +43,8 @@ export class EmailService {
       // Development mode - log to console
       console.log('=== EMAIL CONFIRMATION ===')
       console.log(`To: ${email}`)
-      console.log('From: hello@bellavista.com')
-      console.log('Subject: Booking Confirmation - Bella Vista')
+      console.log('From: hello@mazzikafest.com')
+      console.log('Subject: Booking Confirmation - Mazzika Fest')
       console.log('Content Preview: Booking confirmed for', booking.name, 'on', new Date(booking.date).toLocaleDateString())
       console.log('========================')
       
@@ -91,13 +91,13 @@ export class EmailService {
   <div class="container">
     <div class="header">
       <h1>Booking Confirmed! 🎉</h1>
-      <p>Your special day at Bella Vista is reserved</p>
+      <p>Your special day at Mazzika Fest is reserved</p>
     </div>
     
     <div class="content">
       <p>Dear ${booking.name},</p>
       
-      <p>We're thrilled to confirm your booking at Bella Vista! Your ${eventTypeDisplay.toLowerCase()} is all set, and we can't wait to be part of your special celebration.</p>
+      <p>We're thrilled to confirm your booking at Mazzika Fest! Your ${eventTypeDisplay.toLowerCase()} is all set, and we can't wait to be part of your special celebration.</p>
       
       <div class="booking-details">
         <h3>Booking Details</h3>
@@ -144,15 +144,15 @@ export class EmailService {
       <p>If you have any questions or need to make changes to your booking, please don't hesitate to reach out:</p>
       <ul>
         <li>Phone: +1 (555) 123-4567</li>
-        <li>Email: hello@bellavista.com</li>
+        <li>Email: hello@mazzikafest.com</li>
         <li>Office Hours: Mon-Fri 9AM-6PM, Sat-Sun 10AM-4PM</li>
       </ul>
     </div>
     
     <div class="footer">
-      <p>Thank you for choosing Bella Vista for your special day!</p>
+      <p>Thank you for choosing Mazzika Fest for your special day!</p>
       <p>123 Wedding Lane, Beverly Hills, CA 90210</p>
-      <p>&copy; ${new Date().getFullYear()} Bella Vista. All rights reserved.</p>
+      <p>&copy; ${new Date().getFullYear()} Mazzika Fest. All rights reserved.</p>
     </div>
   </div>
 </body>

@@ -1,69 +1,116 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { api } from '@/src/services/api'
 
 export function useCalendarData(days: (Date | null)[]) {
   const [dateAvailability, setDateAvailability] = useState<Map<string, boolean>>(new Map())
   const [datePrices, setDatePrices] = useState<Map<string, number>>(new Map())
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const isInitialLoad = useRef(true)
+  const lastFetchTime = useRef<number>(0)
+  const MIN_FETCH_INTERVAL = 1500 // Minimum 1.5 seconds between fetches
+  
+  // Create a stable identifier for the current set of days
+  const daysIdentifier = days
+    .filter((d): d is Date => d !== null)
+    .map(d => d.toISOString().split('T')[0])
+    .join(',')
 
-  useEffect(() => {
-    // Create a stable key from the days array
-    const daysKey = days
-      .filter((d): d is Date => d !== null)
-      .map(d => d.toDateString())
-      .join(',')
+  const checkDates = useCallback(async () => {
+    if (!daysIdentifier) return
     
-    if (!daysKey) return
-
-    const checkDates = async () => {
+    // Throttle API calls
+    const now = Date.now()
+    if (now - lastFetchTime.current < MIN_FETCH_INTERVAL) {
+      return
+    }
+    lastFetchTime.current = now
+    
+    // Only show loading on initial load
+    if (isInitialLoad.current) {
       setLoading(true)
-      
-      // Filter out null dates
-      const validDates = days.filter((d): d is Date => d !== null)
-      
-      // Check availability and prices for all dates in parallel
-      const promises = validDates.map(async (date) => {
-        const dateKey = date.toDateString()
-        
-        try {
-          // Check availability
-          const available = await api.checkAvailability(date)
-          
-          // Get price
-          const price = await api.getDatePrice(date)
-          
-          return { dateKey, available, price }
-        } catch (error) {
-          console.error('Error checking date:', date, error)
-          return { dateKey, available: true, price: 3 }
-        }
-      })
-
-      const results = await Promise.all(promises)
+    }
+    
+    // Filter out null dates
+    const validDates = days.filter((d): d is Date => d !== null)
+    
+    if (validDates.length === 0) {
+      setLoading(false)
+      return
+    }
+    
+    try {
+      // Use batch endpoint for efficiency
+      const calendarData = await api.getCalendarData(validDates)
       
       // Update state
       const newAvailability = new Map<string, boolean>()
       const newPrices = new Map<string, number>()
       
-      results.forEach(({ dateKey, available, price }) => {
-        newAvailability.set(dateKey, available)
-        newPrices.set(dateKey, price)
+      validDates.forEach(date => {
+        const dateKey = date.toDateString()
+        const data = calendarData.get(dateKey)
+        
+        if (data) {
+          newAvailability.set(dateKey, data.available)
+          newPrices.set(dateKey, data.price)
+        } else {
+          // Fallback values
+          newAvailability.set(dateKey, true)
+          newPrices.set(dateKey, 5000)
+        }
       })
       
       setDateAvailability(newAvailability)
       setDatePrices(newPrices)
-      setLoading(false)
+    } catch (error) {
+      console.error('Error fetching calendar data:', error)
+    } finally {
+      if (isInitialLoad.current) {
+        setLoading(false)
+        isInitialLoad.current = false
+      }
     }
+  }, [days, daysIdentifier])
 
+  // Initial load
+  useEffect(() => {
     checkDates()
-  }, [days.length]) // Only re-run when the number of days changes
+  }, [checkDates])
+  
+  // Poll for updates with smart frequency
+  useEffect(() => {
+    // Only poll if the component is visible
+    if (typeof document === 'undefined' || document.hidden) return
+    
+    const interval = setInterval(() => {
+      if (!document.hidden) {
+        checkDates()
+      }
+    }, 2000) // Check every 2 seconds when page is visible
+    
+    // Also check when page becomes visible
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        checkDates()
+      }
+    }
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    
+    return () => {
+      clearInterval(interval)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [checkDates])
 
   const isDateAvailable = (date: Date): boolean => {
-    return dateAvailability.get(date.toDateString()) ?? true
+    // If still loading, return false to prevent clicks
+    if (loading) return false
+    return dateAvailability.get(date.toDateString()) ?? false
   }
 
   const getDatePrice = (date: Date): number => {
-    return datePrices.get(date.toDateString()) ?? 3
+    return datePrices.get(date.toDateString()) ?? 5000
   }
 
   return {

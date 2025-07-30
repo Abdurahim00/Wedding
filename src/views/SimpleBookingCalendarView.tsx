@@ -3,20 +3,24 @@
 import { Button } from "@/components/ui/button"
 import { ChevronLeftIcon, ChevronRightIcon, CalendarDays } from "lucide-react"
 import { format } from "date-fns"
+import { useSupabaseRealtime } from "@/src/hooks/useSupabaseRealtime"
 
 interface SimpleBookingCalendarViewProps {
   currentDate: Date
   days: (Date | null)[]
   onDateSelect: (date: Date) => void
   onNavigateMonth: (direction: "prev" | "next") => void
+  bookingInProgress?: Date | null
 }
 
 export default function SimpleBookingCalendarView({
   currentDate,
   days,
   onDateSelect,
-  onNavigateMonth
+  onNavigateMonth,
+  bookingInProgress
 }: SimpleBookingCalendarViewProps) {
+  const { isDateAvailable, getDatePrice, loading } = useSupabaseRealtime(days)
   
   const isToday = (date: Date) => {
     const today = new Date()
@@ -44,6 +48,9 @@ export default function SimpleBookingCalendarView({
             <span className="text-sm font-medium text-gray-600 uppercase tracking-wider">Select Your Date</span>
           </div>
           <p className="text-gray-500 text-sm">Choose from our available dates to begin your journey</p>
+          {loading && (
+            <p className="text-xs text-purple-600 mt-2 animate-pulse">Laddar tillgänglighet...</p>
+          )}
         </div>
 
         {/* Calendar Navigation */}
@@ -90,25 +97,30 @@ export default function SimpleBookingCalendarView({
               return <div key={index} className="aspect-square" />
             }
 
+            const isBeingBooked = bookingInProgress && date.toDateString() === bookingInProgress.toDateString()
+            const available = !loading && isDateAvailable(date) && !isBeingBooked
             const past = isPastDate(date)
             const today = isToday(date)
             const weekend = isWeekend(date)
+            const price = getDatePrice(date)
 
             return (
               <button
                 key={index}
-                onClick={() => !past && onDateSelect(date)}
-                disabled={past}
+                onClick={() => available && !past && onDateSelect(date)}
+                disabled={!available || past}
                 className={`
                   aspect-square rounded-2xl flex flex-col items-center justify-center text-sm font-medium
                   transition-all duration-300 relative group
                   ${
-                    !past
+                    available && !past
                       ? "hover:bg-gradient-to-br hover:from-purple-50 hover:to-blue-50 hover:shadow-lg hover:scale-105 cursor-pointer"
                       : "cursor-not-allowed"
                   }
                   ${
-                    past
+                    loading && !past
+                      ? "text-gray-400 bg-gray-100/50 animate-pulse"
+                      : !available || past
                       ? "text-gray-300 bg-gray-50/50"
                       : weekend
                       ? "text-gray-800 bg-gradient-to-br from-purple-50/50 to-blue-50/50"
@@ -118,6 +130,25 @@ export default function SimpleBookingCalendarView({
                 `}
               >
                 <span className="text-base">{date.getDate()}</span>
+                {loading && !past ? (
+                  <div className="w-8 h-2 bg-gray-300/50 rounded animate-pulse mt-1"></div>
+                ) : available && !past ? (
+                  <span className="text-xs font-medium text-purple-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {price} kr
+                  </span>
+                ) : null}
+                {!available && !past && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="absolute inset-2 bg-gray-200/20 rounded-xl"></div>
+                    <div className="h-px w-8 bg-gray-400 rotate-45"></div>
+                  </div>
+                )}
+                {isBeingBooked && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="absolute inset-2 bg-purple-200/30 rounded-xl animate-pulse"></div>
+                    <span className="text-xs font-medium text-purple-700">Booking...</span>
+                  </div>
+                )}
               </button>
             )
           })}
@@ -135,8 +166,12 @@ export default function SimpleBookingCalendarView({
               <span className="text-gray-600 font-medium">Weekend</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-gray-50 rounded-lg" />
-              <span className="text-gray-600 font-medium">Past Date</span>
+              <div className="w-4 h-4 bg-gray-50 rounded-lg relative overflow-hidden">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="h-px w-6 bg-gray-400 rotate-45"></div>
+                </div>
+              </div>
+              <span className="text-gray-600 font-medium">Unavailable</span>
             </div>
           </div>
         </div>

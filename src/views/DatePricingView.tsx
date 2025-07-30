@@ -1,23 +1,38 @@
 "use client"
 
-import { useState } from 'react'
-import { useStore } from '@/src/services/clientStore'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Calendar } from '@/components/ui/calendar'
-import { DollarSign, CalendarDays, TrendingUp } from 'lucide-react'
+import { DollarSign, CalendarDays, Trash2 } from 'lucide-react'
 import { format } from 'date-fns'
 
 export default function DatePricingView() {
-  const store = useStore()
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
   const [price, setPrice] = useState('3')
   const [showSuccess, setShowSuccess] = useState(false)
-  const [datePrices, setDatePrices] = useState<Map<string, number>>(new Map())
+  const [datePrices, setDatePrices] = useState<Array<{ id: string; date: string; price: number }>>([])
+  const [loading, setLoading] = useState(true)
   
-  const handlePriceUpdate = () => {
+  useEffect(() => {
+    fetchDatePrices()
+  }, [])
+  
+  const fetchDatePrices = async () => {
+    try {
+      const response = await fetch('/api/date-prices')
+      const data = await response.json()
+      setDatePrices(data)
+    } catch (error) {
+      console.error('Failed to fetch date prices:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+  
+  const handlePriceUpdate = async () => {
     if (!selectedDate || !price) return
     
     const priceValue = parseFloat(price)
@@ -26,34 +41,43 @@ export default function DatePricingView() {
       return
     }
     
-    // Update local state
-    const newPrices = new Map(datePrices)
-    newPrices.set(selectedDate.toDateString(), priceValue)
-    setDatePrices(newPrices)
-    
-    // Update in store (async)
-    store.setDatePrice(selectedDate.toDateString(), priceValue)
-      .then(() => {
+    try {
+      const response = await fetch('/api/date-prices', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          date: selectedDate.toISOString(),
+          price: priceValue
+        })
+      })
+      
+      if (response.ok) {
         setShowSuccess(true)
         setTimeout(() => setShowSuccess(false), 3000)
-      })
-      .catch(error => {
-        console.error('Failed to update price:', error)
-        alert('Failed to update price. Please try again.')
-      })
+        await fetchDatePrices()
+      } else {
+        throw new Error('Failed to update price')
+      }
+    } catch (error) {
+      console.error('Failed to update price:', error)
+      alert('Failed to update price. Please try again.')
+    }
   }
   
   const getDatePrice = (date: Date | undefined) => {
     if (!date) return 3
-    return datePrices.get(date.toDateString()) || 3
+    const dateStr = date.toISOString().split('T')[0]
+    const priceEntry = datePrices.find(p => p.date.split('T')[0] === dateStr)
+    return priceEntry?.price || 3
   }
   
-  // Get all dates with custom prices
-  const customPriceDates = Array.from(datePrices.entries()).map(([dateStr, price]) => ({
-    date: new Date(dateStr),
-    dateStr,
-    price
-  })).sort((a, b) => a.date.getTime() - b.date.getTime())
+  useEffect(() => {
+    if (selectedDate) {
+      setPrice(getDatePrice(selectedDate).toString())
+    }
+  }, [selectedDate, datePrices])
 
   return (
     <div className="space-y-6">
@@ -145,7 +169,11 @@ export default function DatePricingView() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {customPriceDates.length === 0 ? (
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+            </div>
+          ) : datePrices.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <CalendarDays className="h-12 w-12 mx-auto mb-3 text-gray-300" />
               <p>No custom prices set yet</p>
@@ -153,38 +181,16 @@ export default function DatePricingView() {
             </div>
           ) : (
             <div className="space-y-2">
-              {customPriceDates.map(({ dateStr, price }) => (
-                <div key={dateStr} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              {datePrices.map((priceEntry) => (
+                <div key={priceEntry.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center gap-3">
                     <CalendarDays className="h-4 w-4 text-gray-500" />
                     <span className="font-medium">
-                      {format(new Date(dateStr), 'EEEE, MMMM d, yyyy')}
+                      {format(new Date(priceEntry.date), 'EEEE, MMMM d, yyyy')}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-lg">{price} SEK</span>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => {
-                        store.setDatePrice(dateStr, 3)
-                          .then(() => {
-                            // Update local state
-                            const newPrices = new Map(datePrices)
-                            newPrices.set(dateStr, 3)
-                            setDatePrices(newPrices)
-                            setShowSuccess(true)
-                            setTimeout(() => setShowSuccess(false), 3000)
-                          })
-                          .catch(error => {
-                            console.error('Failed to reset price:', error)
-                            alert('Failed to reset price. Please try again.')
-                          })
-                      }}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      Reset
-                    </Button>
+                    <span className="font-semibold text-lg">{priceEntry.price} SEK</span>
                   </div>
                 </div>
               ))}

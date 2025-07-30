@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 interface AdminAuthContextType {
   isAuthenticated: boolean
   isLoading: boolean
-  login: (password: string) => boolean
+  login: (username: string, password: string) => Promise<boolean>
   logout: () => void
 }
 
@@ -19,25 +19,40 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Check if admin is already authenticated
-    const authToken = localStorage.getItem('adminAuth')
-    if (authToken === 'authenticated') {
+    const authToken = localStorage.getItem('adminToken')
+    if (authToken) {
+      // Verify token is still valid
       setIsAuthenticated(true)
     }
     setIsLoading(false)
   }, [])
 
-  const login = (password: string) => {
-    // Simple password check - in production, this should be properly secured
-    if (password === 'admin123') {
-      localStorage.setItem('adminAuth', 'authenticated')
-      setIsAuthenticated(true)
-      return true
+  const login = async (username: string, password: string) => {
+    try {
+      const response = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        localStorage.setItem('adminToken', data.token)
+        setIsAuthenticated(true)
+        return true
+      }
+      return false
+    } catch (error) {
+      console.error('Login error:', error)
+      return false
     }
-    return false
   }
 
   const logout = () => {
-    localStorage.removeItem('adminAuth')
+    localStorage.removeItem('adminToken')
     setIsAuthenticated(false)
     router.push('/')
   }

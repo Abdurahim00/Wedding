@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
+import { useSupabaseRealtime } from "@/src/hooks/useSupabaseRealtime"
 
 // Simple static functions - no hooks
 const getDaysInMonth = (date: Date): (Date | null)[] => {
@@ -46,6 +47,7 @@ export default function CleanDashboardView() {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false)
   const [paymentStatus, setPaymentStatus] = useState<"selecting" | "processing" | "success" | "error">("selecting")
   const [currentBooking, setCurrentBooking] = useState<Booking | null>(null)
+  const [bookingInProgressDate, setBookingInProgressDate] = useState<Date | null>(null)
 
   const [bookingFormData, setBookingFormData] = useState({
     name: "",
@@ -58,6 +60,9 @@ export default function CleanDashboardView() {
 
   // Calculate days without memoization for now
   const days = getDaysInMonth(currentDate)
+  
+  // Get price data from calendar hook
+  const { getDatePrice } = useSupabaseRealtime(days)
 
   const navigateMonth = (direction: "prev" | "next") => {
     const newDate = new Date(currentDate)
@@ -93,7 +98,7 @@ export default function CleanDashboardView() {
       eventType: bookingFormData.eventType as Booking['eventType'],
       specialRequests: bookingFormData.specialRequests,
       date: selectedDate,
-      price: 3, // Default price
+      price: getDatePrice(selectedDate),
       status: 'pending',
       createdAt: new Date(),
       updatedAt: new Date()
@@ -102,29 +107,58 @@ export default function CleanDashboardView() {
     setCurrentBooking(booking)
     setShowBookingModal(false)
     setShowPaymentModal(true)
+    setBookingInProgressDate(selectedDate)
   }
 
-  const handlePayment = () => {
+  const handlePayment = async () => {
     if (!currentBooking) return
 
     console.log('Processing payment for booking:', currentBooking)
     setPaymentStatus("processing")
 
-    // Simulate payment processing
-    setTimeout(() => {
+    try {
+      // Create the booking in the database
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: currentBooking.name,
+          email: currentBooking.email,
+          phone: currentBooking.phone,
+          guestCount: currentBooking.guestCount,
+          eventType: currentBooking.eventType,
+          specialRequests: currentBooking.specialRequests,
+          date: currentBooking.date,
+          price: currentBooking.price,
+          status: 'confirmed'
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to create booking')
+      }
+
+      const createdBooking = await response.json()
+      console.log('Booking created successfully:', createdBooking)
+      
       setPaymentStatus("success")
       setShowSuccessMessage(true)
       
       setTimeout(() => {
         handlePaymentComplete()
       }, 2000)
-    }, 1000)
+    } catch (error) {
+      console.error('Error creating booking:', error)
+      setPaymentStatus("error")
+      alert('Failed to create booking. Please try again.')
+    }
   }
 
   const handlePaymentComplete = () => {
     setShowPaymentModal(false)
     setSelectedDate(null)
     setCurrentBooking(null)
+    setBookingInProgressDate(null)
     setBookingFormData({
       name: "",
       email: "",
@@ -152,7 +186,7 @@ export default function CleanDashboardView() {
             <Alert className="bg-green-50 border-green-200">
               <CheckCircle className="h-5 w-5 text-green-600" />
               <AlertDescription className="text-green-800 font-medium">
-                Booking confirmed! Check your email for confirmation details.
+                Bokning bekräftad! Kolla din e-post för bekräftelseinformation.
               </AlertDescription>
             </Alert>
           </div>
@@ -170,6 +204,7 @@ export default function CleanDashboardView() {
                 days={days}
                 onDateSelect={handleDateSelect}
                 onNavigateMonth={navigateMonth}
+                bookingInProgress={bookingInProgressDate}
               />
             </div>
           </div>
@@ -183,6 +218,7 @@ export default function CleanDashboardView() {
                 days={days}
                 onDateSelect={handleDateSelect}
                 onNavigateMonth={navigateMonth}
+                bookingInProgress={bookingInProgressDate}
               />
             </div>
           </div>
@@ -192,9 +228,9 @@ export default function CleanDashboardView() {
         <section id="about" className="py-24 px-4 bg-white">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-4xl lg:text-5xl font-serif text-gray-900 mb-4">About Bella Vista</h2>
+              <h2 className="text-4xl lg:text-5xl font-serif text-gray-900 mb-4">Om Mazzika Fest</h2>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Where timeless elegance meets modern luxury, creating the perfect backdrop for your special day
+                Där tidlös elegans möter modern lyx, skapar den perfekta bakgrunden för din speciella dag
               </p>
             </div>
 
@@ -207,10 +243,10 @@ export default function CleanDashboardView() {
                     </div>
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold mb-2">25+ Years of Excellence</h3>
+                    <h3 className="text-xl font-semibold mb-2">25+ år av excellens</h3>
                     <p className="text-gray-600">
-                      For over two decades, we've been crafting unforgettable wedding experiences, 
-                      hosting over 5,000 celebrations and creating memories that last a lifetime.
+                      I över två decennier har vi skapat oförglömliga bröllopsupplevelser, 
+                      arrangerat över 5 000 fester och skapat minnen som varar livet ut.
                     </p>
                   </div>
                 </div>
@@ -222,10 +258,10 @@ export default function CleanDashboardView() {
                     </div>
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold mb-2">Award-Winning Venue</h3>
+                    <h3 className="text-xl font-semibold mb-2">Prisbelönt lokal</h3>
                     <p className="text-gray-600">
-                      Recognized as the region's premier wedding destination, with multiple awards 
-                      for service excellence and architectural beauty.
+                      Erkänd som regionens främsta bröllopsplats, med flera utmärkelser 
+                      för enastående service och arkitektonisk skönhet.
                     </p>
                   </div>
                 </div>
@@ -237,10 +273,10 @@ export default function CleanDashboardView() {
                     </div>
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold mb-2">Dedicated Team</h3>
+                    <h3 className="text-xl font-semibold mb-2">Engagerat team</h3>
                     <p className="text-gray-600">
-                      Our experienced team of wedding specialists ensures every detail is perfect, 
-                      from intimate gatherings to grand celebrations.
+                      Vårt erfarna team av bröllopsspecialister säkerställer att varje detalj är perfekt, 
+                      från intima sammankomster till stora fester.
                     </p>
                   </div>
                 </div>
@@ -252,10 +288,10 @@ export default function CleanDashboardView() {
                     </div>
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold mb-2">Picture-Perfect Settings</h3>
+                    <h3 className="text-xl font-semibold mb-2">Bildsnöa miljöer</h3>
                     <p className="text-gray-600">
-                      From manicured gardens to elegant ballrooms, every corner of Bella Vista 
-                      provides stunning backdrops for your wedding photography.
+                      Från vårdade trädgårdar till eleganta festsalar, varje hörn av Mazzika Fest 
+                      erbjuder fantastiska bakgrunder för dina bröllopsfotografier.
                     </p>
                   </div>
                 </div>
@@ -282,20 +318,20 @@ export default function CleanDashboardView() {
         <section id="contact" className="py-24 px-4 bg-gradient-to-br from-gray-50 to-white">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-4xl lg:text-5xl font-serif text-gray-900 mb-4">Get in Touch</h2>
+              <h2 className="text-4xl lg:text-5xl font-serif text-gray-900 mb-4">Kontakta oss</h2>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Ready to start planning your dream wedding? We'd love to hear from you
+                Redo att börja planera ditt drömbröllop? Vi skulle älska att höra från dig
               </p>
             </div>
 
             <div className="grid lg:grid-cols-2 gap-16">
               {/* Contact Form */}
               <div className="glass-morphism rounded-3xl p-8">
-                <h3 className="text-2xl font-semibold mb-6">Send us a message</h3>
+                <h3 className="text-2xl font-semibold mb-6">Skicka ett meddelande</h3>
                 <form className="space-y-6">
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="firstName">First Name</Label>
+                      <Label htmlFor="firstName">Förnamn</Label>
                       <Input 
                         id="firstName" 
                         placeholder="John" 
@@ -303,7 +339,7 @@ export default function CleanDashboardView() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="lastName">Last Name</Label>
+                      <Label htmlFor="lastName">Efternamn</Label>
                       <Input 
                         id="lastName" 
                         placeholder="Doe" 
@@ -313,7 +349,7 @@ export default function CleanDashboardView() {
                   </div>
                   
                   <div>
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email">E-post</Label>
                     <Input 
                       id="email" 
                       type="email" 
@@ -323,7 +359,7 @@ export default function CleanDashboardView() {
                   </div>
                   
                   <div>
-                    <Label htmlFor="phone">Phone</Label>
+                    <Label htmlFor="phone">Telefon</Label>
                     <Input 
                       id="phone" 
                       type="tel" 
@@ -333,17 +369,17 @@ export default function CleanDashboardView() {
                   </div>
                   
                   <div>
-                    <Label htmlFor="message">Message</Label>
+                    <Label htmlFor="message">Meddelande</Label>
                     <Textarea 
                       id="message" 
-                      placeholder="Tell us about your dream wedding..." 
+                      placeholder="Berätta om ditt drömbröllop..." 
                       rows={4}
                       className="mt-1 rounded-xl border-gray-200 focus:border-purple-400 resize-none"
                     />
                   </div>
                   
                   <Button className="w-full btn-premium rounded-xl py-6 text-base">
-                    Send Message
+                    Skicka meddelande
                   </Button>
                 </form>
               </div>
@@ -351,51 +387,51 @@ export default function CleanDashboardView() {
               {/* Contact Information */}
               <div className="space-y-8">
                 <div className="glass-morphism rounded-3xl p-8">
-                  <h3 className="text-2xl font-semibold mb-6">Visit Our Venue</h3>
+                  <h3 className="text-2xl font-semibold mb-6">Besök vår lokal</h3>
                   <div className="space-y-4">
                     <div className="flex items-start gap-4">
                       <MapPin className="w-5 h-5 text-purple-600 mt-1" />
                       <div>
-                        <p className="font-medium">Bella Vista Estate</p>
-                        <p className="text-gray-600">123 Wedding Lane, Beverly Hills, CA 90210</p>
+                        <p className="font-medium">Mazzika Fest</p>
+                        <p className="text-gray-600">Festvägen 123, Stockholm</p>
                       </div>
                     </div>
                     
                     <div className="flex items-start gap-4">
                       <Phone className="w-5 h-5 text-purple-600 mt-1" />
                       <div>
-                        <p className="font-medium">Phone</p>
-                        <p className="text-gray-600">+1 (555) 123-4567</p>
+                        <p className="font-medium">Telefon</p>
+                        <p className="text-gray-600">+46 (0)8 123 456 78</p>
                       </div>
                     </div>
                     
                     <div className="flex items-start gap-4">
                       <Mail className="w-5 h-5 text-purple-600 mt-1" />
                       <div>
-                        <p className="font-medium">Email</p>
-                        <p className="text-gray-600">hello@bellavista.com</p>
+                        <p className="font-medium">E-post</p>
+                        <p className="text-gray-600">hello@mazzikafest.com</p>
                       </div>
                     </div>
                     
                     <div className="flex items-start gap-4">
                       <Clock className="w-5 h-5 text-purple-600 mt-1" />
                       <div>
-                        <p className="font-medium">Office Hours</p>
-                        <p className="text-gray-600">Monday - Friday: 9:00 AM - 6:00 PM</p>
-                        <p className="text-gray-600">Saturday - Sunday: 10:00 AM - 4:00 PM</p>
+                        <p className="font-medium">Kontorstider</p>
+                        <p className="text-gray-600">Måndag - Fredag: 09:00 - 18:00</p>
+                        <p className="text-gray-600">Lördag - Söndag: 10:00 - 16:00</p>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 <div className="glass-morphism rounded-3xl p-8">
-                  <h3 className="text-xl font-semibold mb-4">Schedule a Tour</h3>
+                  <h3 className="text-xl font-semibold mb-4">Boka en visning</h3>
                   <p className="text-gray-600 mb-6">
-                    Experience the beauty of Bella Vista firsthand. Book a private tour with our 
-                    wedding specialists and explore our stunning venues, gardens, and facilities.
+                    Upplev skönheten av Mazzika Fest på plats. Boka en privat visning med våra 
+                    bröllopsspecialister och utforska våra fantastiska lokaler, trädgårdar och faciliteter.
                   </p>
                   <Button variant="outline" className="w-full rounded-xl py-4">
-                    Book a Tour
+                    Boka visning
                   </Button>
                 </div>
               </div>
@@ -412,6 +448,7 @@ export default function CleanDashboardView() {
           selectedDate={selectedDate}
           isSubmitting={false}
           formData={bookingFormData}
+          datePrice={selectedDate ? getDatePrice(selectedDate) : undefined}
           onClose={() => setShowBookingModal(false)}
           onSubmit={handleBookingSubmit}
           onInputChange={handleBookingInputChange}

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/src/lib/prisma'
+import { pusherServer } from '@/src/lib/pusher'
+import { emailService } from '@/src/services/emailService'
 
 export async function GET() {
   try {
@@ -17,7 +19,62 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json()
+    const bookingDate = new Date(data.date)
     
+    // Server-side validation: Check if date is available
+    const startOfDay = new Date(bookingDate)
+    startOfDay.setHours(0, 0, 0, 0)
+    const endOfDay = new Date(bookingDate)
+    endOfDay.setHours(23, 59, 59, 999)
+    
+    // Check if date is marked as unavailable
+    const datePrice = await prisma.datePrice.findFirst({
+      where: {
+        date: {
+          gte: startOfDay,
+          lte: endOfDay
+        }
+      }
+    })
+    
+    if (datePrice && !datePrice.isAvailable) {
+      return NextResponse.json(
+        { error: 'This date is not available for booking' },
+        { status: 400 }
+      )
+    }
+    
+    // Check for existing bookings
+    const existingBooking = await prisma.booking.findFirst({
+      where: {
+        date: {
+          gte: startOfDay,
+          lte: endOfDay
+        },
+        status: {
+          in: ['confirmed', 'pending']
+        }
+      }
+    })
+    
+    if (existingBooking) {
+      return NextResponse.json(
+        { error: 'This date is already booked' },
+        { status: 400 }
+      )
+    }
+    
+    // Check if past date
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    if (bookingDate < today) {
+      return NextResponse.json(
+        { error: 'Cannot book past dates' },
+        { status: 400 }
+      )
+    }
+    
+    // Create booking only if all validations pass
     const booking = await prisma.booking.create({
       data: {
         name: data.name,
@@ -26,11 +83,30 @@ export async function POST(request: NextRequest) {
         guestCount: data.guestCount,
         eventType: data.eventType,
         specialRequests: data.specialRequests,
-        date: new Date(data.date),
+        date: bookingDate,
         price: data.price,
         status: data.status || 'pending'
       }
     })
+    
+    // Send confirmation email
+    try {
+      await emailService.sendBookingConfirmation(booking, booking.email)
+      console.log('Confirmation email sent to:', booking.email)
+    } catch (error) {
+      console.error('Failed to send confirmation email:', error)
+      // Don't fail the booking if email fails
+    }
+    
+    // Broadcast the new booking
+    try {
+      await pusherServer.trigger('calendar-updates', 'booking-created', {
+        date: bookingDate.toISOString(),
+        bookingId: booking.id
+      })
+    } catch (error) {
+      console.error('Failed to broadcast booking:', error)
+    }
     
     return NextResponse.json(booking)
   } catch (error) {

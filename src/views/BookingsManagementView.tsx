@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useStore } from '@/src/services/clientStore'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -13,13 +13,46 @@ import type { Booking } from '@/src/types'
 
 export default function BookingsManagementView() {
   const store = useStore()
-  const [bookings, setBookings] = useState(store.bookingModel.getAllBookings())
+  const [bookings, setBookings] = useState<Booking[]>([])
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [searchTerm, setSearchTerm] = useState('')
+  const [loading, setLoading] = useState(true)
 
-  const handleStatusChange = (bookingId: string, newStatus: Booking['status']) => {
-    store.updateBooking(bookingId, { status: newStatus })
-    setBookings(store.bookingModel.getAllBookings())
+  // Fetch bookings from API on mount
+  useEffect(() => {
+    fetchBookings()
+  }, [])
+
+  const fetchBookings = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/bookings')
+      if (response.ok) {
+        const data = await response.json()
+        setBookings(data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch bookings:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleStatusChange = async (bookingId: string, newStatus: Booking['status']) => {
+    try {
+      const response = await fetch(`/api/bookings/${bookingId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      })
+      
+      if (response.ok) {
+        // Refresh bookings list
+        fetchBookings()
+      }
+    } catch (error) {
+      console.error('Failed to update booking status:', error)
+    }
   }
 
   const getStatusBadge = (status: Booking['status']) => {
@@ -91,7 +124,13 @@ export default function BookingsManagementView() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedBookings.length === 0 ? (
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                    Loading bookings...
+                  </TableCell>
+                </TableRow>
+              ) : sortedBookings.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                     No bookings found

@@ -1,25 +1,29 @@
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  schemas  = ["wedding", "public"]
 }
 
 model Booking {
+  @@schema("wedding")
   id              String   @id @default(cuid())
   name            String
   email           String
   phone           String
   guestCount      Int
   eventType       String
-  specialRequests String?
-  date            DateTime
+  specialRequests String?  @db.Text
+  date            DateTime @db.Timestamptz(6)
   price           Float
   status          String   @default("pending")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt       DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @db.Timestamptz(6)
   
   payment         Payment?
   
@@ -29,12 +33,13 @@ model Booking {
 }
 
 model Payment {
+  @@schema("wedding")
   id              String   @id @default(cuid())
   bookingId       String   @unique
   amount          Float
   stripePaymentId String?
   status          String   @default("pending")
-  createdAt       DateTime @default(now())
+  createdAt       DateTime @default(now()) @db.Timestamptz(6)
   
   booking         Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   
@@ -43,26 +48,29 @@ model Payment {
 }
 
 model DatePrice {
+  @@schema("wedding")
   id              String   @id @default(cuid())
-  date            DateTime @unique
+  date            DateTime @unique @db.Timestamptz(6)
   price           Float
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt       DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @db.Timestamptz(6)
   
   @@index([date])
 }
 
 model Admin {
+  @@schema("wedding")
   id              String   @id @default(cuid())
   username        String   @unique
   passwordHash    String
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt       DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @db.Timestamptz(6)
 }
 
 model VenueSettings {
+  @@schema("wedding")
   id              String   @id @default(cuid())
-  videoUrl        String
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  videoUrl        String   @db.Text
+  createdAt       DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @db.Timestamptz(6)
 }
