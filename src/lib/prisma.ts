@@ -18,7 +18,7 @@ class PrismaClientWithSchema extends PrismaClient {
   async $connect() {
     await super.$connect()
     // Set schema after connecting
-    await this.$executeRaw`SET search_path TO wedding,public`
+    await this.$executeRaw`SET search_path TO wedding`
   }
 }
 

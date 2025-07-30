@@ -24,7 +24,7 @@ export async function GET() {
     results.schema = schemaResult
 
     // Try to set wedding schema
-    await prisma.$executeRaw`SET search_path TO wedding,public`
+    await prisma.$executeRaw`SET search_path TO wedding`
     
     // Check schema after setting
     const schemaAfter = await prisma.$queryRaw`SELECT current_schema()`
