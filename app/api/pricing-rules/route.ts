@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PricingRuleModel } from '@/src/models/PricingRuleModel'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     const rules = await PricingRuleModel.findAll()

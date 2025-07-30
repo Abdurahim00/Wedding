@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { AdminModel } from '@/src/models/AdminModel'
 import jwt from 'jsonwebtoken'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: Request) {
   try {
     const { username, password } = await request.json()

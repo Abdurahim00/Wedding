@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/src/lib/prisma'
 
+export const dynamic = 'force-dynamic'
+
 // Cache for pricing rules to avoid repeated queries
 let rulesCache: any[] | null = null
 let rulesCacheTime = 0

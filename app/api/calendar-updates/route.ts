@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic'
+
 // This endpoint is called whenever date availability changes
 export async function POST(request: NextRequest) {
   try {

@@ -3,6 +3,8 @@ import { prisma } from '@/src/lib/prisma'
 import { pusherServer } from '@/src/lib/pusher'
 import { emailService } from '@/src/services/emailService'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     const bookings = await prisma.booking.findMany({
