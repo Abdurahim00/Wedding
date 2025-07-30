@@ -13,6 +13,7 @@ import {
   LineChartIcon
 } from 'lucide-react'
 import { format, startOfMonth, endOfMonth, eachMonthOfInterval, subMonths } from 'date-fns'
+import { sv } from 'date-fns/locale'
 
 export default function FinancialAnalyticsView() {
   const store = useStore()
@@ -53,7 +54,7 @@ export default function FinancialAnalyticsView() {
       const guestCount = monthBookings.reduce((sum, booking) => sum + booking.guestCount, 0)
 
       return {
-        month: format(month, 'MMM yyyy'),
+        month: format(month, 'MMM yyyy', { locale: sv }),
         revenue,
         bookingCount,
         guestCount,
@@ -99,9 +100,9 @@ export default function FinancialAnalyticsView() {
   }, [monthlyData])
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('sv-SE', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'SEK',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(amount)
@@ -116,16 +117,16 @@ export default function FinancialAnalyticsView() {
     <div className="space-y-6">
       {/* Time Range Selector */}
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Financial Analytics</h3>
+        <h3 className="text-lg font-semibold">Finansiell analys</h3>
         <Select value={timeRange} onValueChange={setTimeRange}>
           <SelectTrigger className="w-[180px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="1month">Last Month</SelectItem>
-            <SelectItem value="3months">Last 3 Months</SelectItem>
-            <SelectItem value="6months">Last 6 Months</SelectItem>
-            <SelectItem value="12months">Last 12 Months</SelectItem>
+            <SelectItem value="1month">Senaste månaden</SelectItem>
+            <SelectItem value="3months">Senaste 3 månaderna</SelectItem>
+            <SelectItem value="6months">Senaste 6 månaderna</SelectItem>
+            <SelectItem value="12months">Senaste 12 månaderna</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -134,50 +135,50 @@ export default function FinancialAnalyticsView() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium">Total intäkt</CardTitle>
             <DollarSignIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(totals.revenue)}</div>
             <p className={`text-xs ${growthMetrics.revenue >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {formatPercentage(growthMetrics.revenue)} from last month
+              {formatPercentage(growthMetrics.revenue)} från förra månaden
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
+            <CardTitle className="text-sm font-medium">Totalt antal bokningar</CardTitle>
             <CalendarIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totals.bookings}</div>
             <p className={`text-xs ${growthMetrics.bookings >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {formatPercentage(growthMetrics.bookings)} from last month
+              {formatPercentage(growthMetrics.bookings)} från förra månaden
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg. Booking Value</CardTitle>
+            <CardTitle className="text-sm font-medium">Genomsnittligt bokningsvärde</CardTitle>
             <TrendingUpIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(totals.avgBookingValue)}</div>
-            <p className="text-xs text-muted-foreground">Per booking</p>
+            <p className="text-xs text-muted-foreground">Per bokning</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Guests</CardTitle>
+            <CardTitle className="text-sm font-medium">Totalt antal gäster</CardTitle>
             <UsersIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totals.guests}</div>
             <p className="text-xs text-muted-foreground">
-              Avg. {Math.round(totals.avgGuestsPerBooking)} per event
+              Genomsnitt {Math.round(totals.avgGuestsPerBooking)} per evenemang
             </p>
           </CardContent>
         </Card>
@@ -186,8 +187,8 @@ export default function FinancialAnalyticsView() {
       {/* Monthly Breakdown */}
       <Card>
         <CardHeader>
-          <CardTitle>Monthly Breakdown</CardTitle>
-          <CardDescription>Revenue and booking trends over time</CardDescription>
+          <CardTitle>Månatlig uppdelning</CardTitle>
+          <CardDescription>Intäkts- och bokningstrender över tid</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">

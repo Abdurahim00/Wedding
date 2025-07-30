@@ -70,12 +70,12 @@ export default function VideoManagementView() {
       return
     }
 
-    // Check file size (100MB limit)
-    const maxSize = 100 * 1024 * 1024 // 100MB in bytes
+    // Check file size (4MB limit for Vercel)
+    const maxSize = 4 * 1024 * 1024 // 4MB in bytes
     if (file.size > maxSize) {
       toast({
         title: "File too large",
-        description: "File size exceeds 100MB limit",
+        description: "File size exceeds 4MB limit. Please compress your video or use a shorter clip.",
         variant: "destructive"
       })
       return

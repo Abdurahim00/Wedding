@@ -128,25 +128,31 @@ export default function BookingsManagementView() {
               {loading ? (
                 <TableRow>
                   <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
-                    Loading bookings...
+                    Laddar bokningar...
                   </TableCell>
                 </TableRow>
               ) : sortedBookings.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
-                    No bookings found
+                    Inga bokningar hittades
                   </TableCell>
                 </TableRow>
               ) : (
                 sortedBookings.map((booking) => (
                   <TableRow key={booking.id}>
-                    <TableCell>{format(new Date(booking.date), 'MMM d, yyyy')}</TableCell>
+                    <TableCell>{format(new Date(booking.date), 'd MMM yyyy', { locale: sv })}</TableCell>
                     <TableCell className="font-medium">{booking.name}</TableCell>
                     <TableCell>{booking.email}</TableCell>
                     <TableCell>{booking.phone}</TableCell>
                     <TableCell>{booking.guestCount}</TableCell>
-                    <TableCell className="capitalize">{booking.eventType}</TableCell>
-                    <TableCell>${booking.price.toLocaleString()}</TableCell>
+                    <TableCell className="capitalize">{
+                      booking.eventType === 'wedding' ? 'Bröllop' :
+                      booking.eventType === 'engagement' ? 'Förlovningsfest' :
+                      booking.eventType === 'anniversary' ? 'Jubileum' :
+                      booking.eventType === 'other' ? 'Annat' :
+                      booking.eventType
+                    }</TableCell>
+                    <TableCell>{booking.price.toLocaleString('sv-SE')} SEK</TableCell>
                     <TableCell>{getStatusBadge(booking.status)}</TableCell>
                     <TableCell>
                       <Select
@@ -159,9 +165,9 @@ export default function BookingsManagementView() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="confirmed">Confirmed</SelectItem>
-                          <SelectItem value="cancelled">Cancelled</SelectItem>
+                          <SelectItem value="pending">Väntande</SelectItem>
+                          <SelectItem value="confirmed">Bekräftad</SelectItem>
+                          <SelectItem value="cancelled">Avbokad</SelectItem>
                         </SelectContent>
                       </Select>
                     </TableCell>
@@ -176,20 +182,20 @@ export default function BookingsManagementView() {
         <div className="mt-6 pt-6 border-t">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
             <div>
-              <p className="text-muted-foreground">Total Bookings</p>
+              <p className="text-muted-foreground">Totalt antal bokningar</p>
               <p className="font-semibold">{filteredBookings.length}</p>
             </div>
             <div>
-              <p className="text-muted-foreground">Total Revenue</p>
+              <p className="text-muted-foreground">Total intäkt</p>
               <p className="font-semibold">
-                ${filteredBookings
+                {filteredBookings
                   .filter(b => b.status === 'confirmed')
                   .reduce((sum, b) => sum + b.price, 0)
-                  .toLocaleString()}
+                  .toLocaleString('sv-SE')} SEK
               </p>
             </div>
             <div>
-              <p className="text-muted-foreground">Avg. Guests</p>
+              <p className="text-muted-foreground">Genomsnitt gäster</p>
               <p className="font-semibold">
                 {filteredBookings.length > 0
                   ? Math.round(

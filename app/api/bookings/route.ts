@@ -2,17 +2,23 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/src/lib/prisma'
 import { pusherServer } from '@/src/lib/pusher'
 import { emailService } from '@/src/services/emailService'
+import { withWeddingSchema } from '@/src/lib/db-utils'
 
 export async function GET() {
   try {
-    const bookings = await prisma.booking.findMany({
-      orderBy: { createdAt: 'desc' }
+    const bookings = await withWeddingSchema(async () => {
+      return await prisma.booking.findMany({
+        orderBy: { createdAt: 'desc' }
+      })
     })
     
     return NextResponse.json(bookings)
   } catch (error) {
     console.error('Error fetching bookings:', error)
-    return NextResponse.json({ error: 'Failed to fetch bookings' }, { status: 500 })
+    return NextResponse.json({ 
+      error: 'Failed to fetch bookings',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 })
   }
 }
 

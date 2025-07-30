@@ -24,11 +24,11 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Check file size (100MB limit)
-    const maxSize = 100 * 1024 * 1024
+    // Check file size (4MB limit for Vercel)
+    const maxSize = 4 * 1024 * 1024
     if (file.size > maxSize) {
       return NextResponse.json(
-        { error: 'File size exceeds 100MB limit' },
+        { error: 'File size exceeds 4MB limit. Please use a smaller video or compress it.' },
         { status: 400 }
       )
     }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/src/lib/prisma'
+import { withWeddingSchema } from '@/src/lib/db-utils'
 
 // Cache for pricing rules to avoid repeated queries
 let rulesCache: any[] | null = null
@@ -15,7 +16,8 @@ export async function POST(request: NextRequest) {
     }
     
     // Process all dates in a single query
-    const results = await Promise.all(
+    const results = await withWeddingSchema(async () => {
+      return await Promise.all(
       dates.map(async (dateStr: string) => {
         const date = new Date(dateStr)
         const startOfDay = new Date(date)
@@ -101,6 +103,7 @@ export async function POST(request: NextRequest) {
         }
       })
     )
+    })
     
     // Return results array directly
     return NextResponse.json({ dates: results })
