@@ -13,8 +13,20 @@ export class EmailService {
   private resend: any
 
   constructor() {
-    if (isServer && process.env.RESEND_API_KEY) {
-      this.resend = new Resend(process.env.RESEND_API_KEY)
+    if (isServer && process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== 'your-api-key-here') {
+      console.log('Initializing Resend with API key...')
+      try {
+        this.resend = new Resend(process.env.RESEND_API_KEY)
+        console.log('Resend initialized successfully')
+      } catch (error) {
+        console.error('Failed to initialize Resend:', error)
+      }
+    } else {
+      console.log('Resend not initialized:', {
+        isServer,
+        hasApiKey: !!process.env.RESEND_API_KEY,
+        apiKeyNotPlaceholder: process.env.RESEND_API_KEY !== 'your-api-key-here'
+      })
     }
   }
 
@@ -22,41 +34,73 @@ export class EmailService {
     try {
       const emailContent = this.generateBookingConfirmationEmail(booking)
       
+      // Check if Resend is configured
+      console.log('Email Service Debug:')
+      console.log('- Resend configured:', !!this.resend)
+      console.log('- API Key exists:', !!process.env.RESEND_API_KEY)
+      console.log('- API Key starts with:', process.env.RESEND_API_KEY?.substring(0, 10) + '...')
+      console.log('- Email FROM:', process.env.EMAIL_FROM)
+      console.log('- Email TO:', email)
+      
       // In production with Resend configured
       if (this.resend) {
-        const { data, error } = await this.resend.emails.send({
-          from: process.env.EMAIL_FROM || 'Mazzika Fest <noreply@mazzikafest.com>',
-          to: [email],
-          subject: 'Booking Confirmation - Mazzika Fest Wedding Venue',
-          html: emailContent,
-        })
+        try {
+          const { data, error } = await this.resend.emails.send({
+            from: process.env.EMAIL_FROM || 'Mazzika Fest <onboarding@resend.dev>',
+            to: [email],
+            subject: 'Bokningsbekräftelse - Mazzika Fest Bröllopslokal',
+            html: emailContent,
+          })
 
-        if (error) {
-          console.error('Resend error:', error)
-          return false
+          if (error) {
+            console.error('Resend API error details:', {
+              error,
+              message: error?.message,
+              name: error?.name,
+              statusCode: error?.statusCode
+            })
+            return false
+          }
+
+          console.log('Email sent successfully via Resend!')
+          console.log('Response data:', {
+            id: data?.id,
+            from: data?.from,
+            to: data?.to,
+            createdAt: data?.createdAt
+          })
+          return true
+        } catch (resendError) {
+          console.error('Resend send error:', {
+            error: resendError,
+            message: resendError?.message,
+            stack: resendError?.stack
+          })
+          throw resendError
         }
-
-        console.log('Email sent successfully via Resend:', data)
-        return true
       }
       
       // Development mode - log to console
-      console.log('=== EMAIL CONFIRMATION ===')
+      console.log('=== EMAIL CONFIRMATION (Dev Mode - No Resend) ===')
       console.log(`To: ${email}`)
-      console.log('From: hello@mazzikafest.com')
-      console.log('Subject: Booking Confirmation - Mazzika Fest')
-      console.log('Content Preview: Booking confirmed for', booking.name, 'on', new Date(booking.date).toLocaleDateString())
+      console.log('From:', process.env.EMAIL_FROM)
+      console.log('Subject: Bokningsbekräftelse - Mazzika Fest')
+      console.log('Innehållsförhandsvisning: Bokning bekräftad för', booking.name, 'den', new Date(booking.date).toLocaleDateString('sv-SE'))
       console.log('========================')
       
       return true
     } catch (error) {
-      console.error('Failed to send confirmation email:', error)
+      console.error('Failed to send confirmation email:', {
+        error,
+        message: error?.message,
+        stack: error?.stack
+      })
       return false
     }
   }
 
   private generateBookingConfirmationEmail(booking: Booking): string {
-    const formattedDate = new Date(booking.date).toLocaleDateString('en-US', {
+    const formattedDate = new Date(booking.date).toLocaleDateString('sv-SE', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
@@ -64,11 +108,11 @@ export class EmailService {
     })
     
     const eventTypeDisplay = {
-      wedding: 'Wedding',
-      reception: 'Reception',
-      anniversary: 'Anniversary Celebration',
-      corporate: 'Corporate Event',
-      other: 'Special Event'
+      wedding: 'Bröllop',
+      reception: 'Mottagning',
+      anniversary: 'Jubileumsfirande',
+      corporate: 'Företagsevenemang',
+      other: 'Speciell händelse'
     }[booking.eventType] || booking.eventType
 
     return `
@@ -90,69 +134,69 @@ export class EmailService {
 <body>
   <div class="container">
     <div class="header">
-      <h1>Booking Confirmed! 🎉</h1>
-      <p>Your special day at Mazzika Fest is reserved</p>
+      <h1>Bokning bekräftad! 🎉</h1>
+      <p>Din speciella dag hos Mazzika Fest är reserverad</p>
     </div>
     
     <div class="content">
-      <p>Dear ${booking.name},</p>
+      <p>Kära ${booking.name},</p>
       
-      <p>We're thrilled to confirm your booking at Mazzika Fest! Your ${eventTypeDisplay.toLowerCase()} is all set, and we can't wait to be part of your special celebration.</p>
+      <p>Vi är glädda att bekräfta din bokning hos Mazzika Fest! Ditt ${eventTypeDisplay.toLowerCase()} är klart, och vi ser fram emot att vara en del av ditt speciella firande.</p>
       
       <div class="booking-details">
-        <h3>Booking Details</h3>
+        <h3>Bokningsdetaljer</h3>
         <div class="detail-row">
-          <strong>Confirmation Number:</strong>
+          <strong>Bekräftelsenummer:</strong>
           <span>${booking.id}</span>
         </div>
         <div class="detail-row">
-          <strong>Event Date:</strong>
+          <strong>Evenemangsdatum:</strong>
           <span>${formattedDate}</span>
         </div>
         <div class="detail-row">
-          <strong>Event Type:</strong>
+          <strong>Typ av evenemang:</strong>
           <span>${eventTypeDisplay}</span>
         </div>
         <div class="detail-row">
-          <strong>Guest Count:</strong>
-          <span>${booking.guestCount} guests</span>
+          <strong>Antal gäster:</strong>
+          <span>${booking.guestCount} gäster</span>
         </div>
         <div class="detail-row">
-          <strong>Total Amount:</strong>
-          <span>${booking.price} SEK</span>
+          <strong>Totalbelopp:</strong>
+          <span>${booking.price.toLocaleString('sv-SE')} SEK</span>
         </div>
         <div class="detail-row">
           <strong>Status:</strong>
-          <span style="color: #28a745;">Confirmed & Paid ✓</span>
+          <span style="color: #28a745;">Bekräftad & Betald ✓</span>
         </div>
         ${booking.specialRequests ? `
         <div class="detail-row">
-          <strong>Special Requests:</strong>
+          <strong>Särskilda önskemål:</strong>
           <span>${booking.specialRequests}</span>
         </div>
         ` : ''}
       </div>
       
-      <h3>What's Next?</h3>
+      <h3>Vad händer nu?</h3>
       <ol>
-        <li><strong>Save the Date:</strong> We've reserved ${formattedDate} exclusively for you.</li>
-        <li><strong>Planning Meeting:</strong> Our wedding coordinator will contact you within 48 hours to schedule your first planning session.</li>
-        <li><strong>Venue Tour:</strong> If you haven't visited yet, we'd love to show you around our beautiful venue.</li>
+        <li><strong>Spara datumet:</strong> Vi har reserverat ${formattedDate} exklusivt för dig.</li>
+        <li><strong>Planeringsmöte:</strong> Vår bröllopskoordinator kommer att kontakta dig inom 48 timmar för att boka ditt första planeringsmöte.</li>
+        <li><strong>Visning av lokalen:</strong> Om du inte har besökt oss ännu, visar vi gärna dig runt i vår vackra lokal.</li>
       </ol>
       
-      <h3>Contact Information</h3>
-      <p>If you have any questions or need to make changes to your booking, please don't hesitate to reach out:</p>
+      <h3>Kontaktinformation</h3>
+      <p>Om du har några frågor eller behöver göra ändringar i din bokning, tveka inte att kontakta oss:</p>
       <ul>
-        <li>Phone: +1 (555) 123-4567</li>
-        <li>Email: hello@mazzikafest.com</li>
-        <li>Office Hours: Mon-Fri 9AM-6PM, Sat-Sun 10AM-4PM</li>
+        <li>Telefon: 0735136002</li>
+        <li>E-post: info@mazzikafest.se</li>
+        <li>Kontorstider: Mån-Fre 09:00-18:00, Lör-Sön 10:00-16:00</li>
       </ul>
     </div>
     
     <div class="footer">
-      <p>Thank you for choosing Mazzika Fest for your special day!</p>
-      <p>123 Wedding Lane, Beverly Hills, CA 90210</p>
-      <p>&copy; ${new Date().getFullYear()} Mazzika Fest. All rights reserved.</p>
+      <p>Tack för att du valde Mazzika Fest för din speciella dag!</p>
+      <p>Festvägen 123, Stockholm</p>
+      <p>&copy; ${new Date().getFullYear()} Mazzika Fest. Alla rättigheter förbehållna.</p>
     </div>
   </div>
 </body>

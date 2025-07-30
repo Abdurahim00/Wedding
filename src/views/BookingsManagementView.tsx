@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { format } from 'date-fns'
+import { sv } from 'date-fns/locale'
 import type { Booking } from '@/src/types'
 
 export default function BookingsManagementView() {
@@ -57,9 +58,9 @@ export default function BookingsManagementView() {
 
   const getStatusBadge = (status: Booking['status']) => {
     const variants = {
-      pending: { label: 'Pending', className: 'bg-yellow-100 text-yellow-800' },
-      confirmed: { label: 'Confirmed', className: 'bg-green-100 text-green-800' },
-      cancelled: { label: 'Cancelled', className: 'bg-red-100 text-red-800' }
+      pending: { label: 'Väntande', className: 'bg-yellow-100 text-yellow-800' },
+      confirmed: { label: 'Bekräftad', className: 'bg-green-100 text-green-800' },
+      cancelled: { label: 'Avbokad', className: 'bg-red-100 text-red-800' }
     }
     const variant = variants[status]
     return <Badge className={variant.className}>{variant.label}</Badge>
@@ -81,28 +82,28 @@ export default function BookingsManagementView() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Bookings Management</CardTitle>
-        <CardDescription>View and manage all wedding bookings</CardDescription>
+        <CardTitle>Bokningshantering</CardTitle>
+        <CardDescription>Visa och hantera alla bröllopsbokningar</CardDescription>
       </CardHeader>
       <CardContent>
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="flex-1">
             <Input
-              placeholder="Search by name, email, or phone..."
+              placeholder="Sök efter namn, e-post eller telefon..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           <Select value={filterStatus} onValueChange={setFilterStatus}>
             <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="Filter by status" />
+              <SelectValue placeholder="Filtrera efter status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Bookings</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="confirmed">Confirmed</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
+              <SelectItem value="all">Alla bokningar</SelectItem>
+              <SelectItem value="pending">Väntande</SelectItem>
+              <SelectItem value="confirmed">Bekräftade</SelectItem>
+              <SelectItem value="cancelled">Avbokade</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -112,15 +113,15 @@ export default function BookingsManagementView() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Guests</TableHead>
-                <TableHead>Event Type</TableHead>
-                <TableHead>Price</TableHead>
+                <TableHead>Datum</TableHead>
+                <TableHead>Namn</TableHead>
+                <TableHead>E-post</TableHead>
+                <TableHead>Telefon</TableHead>
+                <TableHead>Gäster</TableHead>
+                <TableHead>Evenemangstyp</TableHead>
+                <TableHead>Pris</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>Åtgärder</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

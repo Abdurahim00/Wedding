@@ -334,7 +334,7 @@ export default function CleanDashboardView() {
                       <Label htmlFor="firstName">Förnamn</Label>
                       <Input 
                         id="firstName" 
-                        placeholder="John" 
+                        placeholder="Erik" 
                         className="mt-1 rounded-xl border-gray-200 focus:border-purple-400"
                       />
                     </div>
@@ -342,7 +342,7 @@ export default function CleanDashboardView() {
                       <Label htmlFor="lastName">Efternamn</Label>
                       <Input 
                         id="lastName" 
-                        placeholder="Doe" 
+                        placeholder="Andersson" 
                         className="mt-1 rounded-xl border-gray-200 focus:border-purple-400"
                       />
                     </div>
@@ -353,7 +353,7 @@ export default function CleanDashboardView() {
                     <Input 
                       id="email" 
                       type="email" 
-                      placeholder="john@example.com" 
+                      placeholder="erik@exempel.se" 
                       className="mt-1 rounded-xl border-gray-200 focus:border-purple-400"
                     />
                   </div>
@@ -363,7 +363,7 @@ export default function CleanDashboardView() {
                     <Input 
                       id="phone" 
                       type="tel" 
-                      placeholder="+1 (555) 123-4567" 
+                      placeholder="+46 70 123 45 67" 
                       className="mt-1 rounded-xl border-gray-200 focus:border-purple-400"
                     />
                   </div>
@@ -401,7 +401,7 @@ export default function CleanDashboardView() {
                       <Phone className="w-5 h-5 text-purple-600 mt-1" />
                       <div>
                         <p className="font-medium">Telefon</p>
-                        <p className="text-gray-600">+46 (0)8 123 456 78</p>
+                        <p className="text-gray-600">0735136002</p>
                       </div>
                     </div>
                     
@@ -409,7 +409,7 @@ export default function CleanDashboardView() {
                       <Mail className="w-5 h-5 text-purple-600 mt-1" />
                       <div>
                         <p className="font-medium">E-post</p>
-                        <p className="text-gray-600">hello@mazzikafest.com</p>
+                        <p className="text-gray-600">info@mazzikafest.se</p>
                       </div>
                     </div>
                     

@@ -93,41 +93,41 @@ export default function AdminDashboardView() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle>Admin Login</CardTitle>
-            <CardDescription>Enter your admin password to continue</CardDescription>
+            <CardTitle>Administratörsinloggning</CardTitle>
+            <CardDescription>Ange ditt administratörslösenord för att fortsätta</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
+                <Label htmlFor="username">Användarnamn</Label>
                 <Input
                   id="username"
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Enter username"
+                  placeholder="Ange användarnamn"
                   className={loginError ? 'border-red-500' : ''}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Lösenord</Label>
                 <Input
                   id="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter password"
+                  placeholder="Ange lösenord"
                   className={loginError ? 'border-red-500' : ''}
                 />
                 {loginError && (
-                  <p className="text-sm text-red-500">Invalid credentials</p>
+                  <p className="text-sm text-red-500">Ogiltiga uppgifter</p>
                 )}
               </div>
               <Button type="submit" className="w-full">
-                Login
+                Logga in
               </Button>
               <p className="text-xs text-center text-muted-foreground mt-2">
-                Default: admin / admin123
+                Standard: admin / admin123
               </p>
             </form>
           </CardContent>
@@ -142,10 +142,10 @@ export default function AdminDashboardView() {
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <h1 className="text-xl font-semibold">Admin Dashboard</h1>
+            <h1 className="text-xl font-semibold">Administrationspanel</h1>
             <Button onClick={logout} variant="outline" size="sm">
               <LogOutIcon className="h-4 w-4 mr-2" />
-              Logout
+              Logga ut
             </Button>
           </div>
         </div>
@@ -157,7 +157,7 @@ export default function AdminDashboardView() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
+              <CardTitle className="text-sm font-medium">Totalt antal bokningar</CardTitle>
               <UsersIcon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -167,7 +167,7 @@ export default function AdminDashboardView() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Confirmed</CardTitle>
+              <CardTitle className="text-sm font-medium">Bekräftade</CardTitle>
               <CheckCircleIcon className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
@@ -177,7 +177,7 @@ export default function AdminDashboardView() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending</CardTitle>
+              <CardTitle className="text-sm font-medium">Väntande</CardTitle>
               <ClockIcon className="h-4 w-4 text-yellow-600" />
             </CardHeader>
             <CardContent>
@@ -187,11 +187,11 @@ export default function AdminDashboardView() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+              <CardTitle className="text-sm font-medium">Total intäkt</CardTitle>
               <DollarSignIcon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${totalRevenue.toLocaleString()}</div>
+              <div className="text-2xl font-bold">{totalRevenue.toLocaleString('sv-SE')} SEK</div>
             </CardContent>
           </Card>
         </div>
@@ -201,15 +201,15 @@ export default function AdminDashboardView() {
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="bookings">
               <CalendarIcon className="h-4 w-4 mr-2" />
-              Bookings
+              Bokningar
             </TabsTrigger>
             <TabsTrigger value="dates">
               <Settings className="h-4 w-4 mr-2" />
-              Dates
+              Datum
             </TabsTrigger>
             <TabsTrigger value="analytics">
               <TrendingUpIcon className="h-4 w-4 mr-2" />
-              Analytics
+              Analys
             </TabsTrigger>
             <TabsTrigger value="video">
               <VideoIcon className="h-4 w-4 mr-2" />

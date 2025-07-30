@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import StripePaymentForm from "@/src/components/StripePaymentForm"
 import type { Booking } from "@/src/types"
 import { format } from "date-fns"
+import { sv } from "date-fns/locale"
 
 interface PaymentModalViewProps {
   bookingData: Booking | null
@@ -99,7 +100,7 @@ export default function PaymentModalView({
             size="icon"
             onClick={onClose}
             className="absolute right-4 top-4 rounded-full hover:bg-white/20"
-            aria-label="Close modal"
+            aria-label="Stäng"
           >
             <X className="h-5 w-5" />
           </Button>
@@ -108,28 +109,34 @@ export default function PaymentModalView({
             <CreditCard className="h-8 w-8 text-purple-600" />
           </div>
 
-          <h2 className="text-3xl font-serif text-gray-900 mb-2">Complete Your Booking</h2>
-          <p className="text-gray-600">Secure payment for your special day</p>
+          <h2 className="text-3xl font-serif text-gray-900 mb-2">Slutför din bokning</h2>
+          <p className="text-gray-600">Säker betalning för din speciella dag</p>
         </div>
 
         {/* Booking Summary */}
         <div className="p-8 border-b border-gray-200/20">
-          <h3 className="text-lg font-semibold mb-4">Booking Summary</h3>
+          <h3 className="text-lg font-semibold mb-4">Bokningssammanfattning</h3>
           <div className="space-y-3 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-600">Date</span>
-              <span className="font-medium">{format(new Date(bookingData.date), "EEEE, MMMM d, yyyy")}</span>
+              <span className="text-gray-600">Datum</span>
+              <span className="font-medium">{format(new Date(bookingData.date), "EEEE d MMMM yyyy", { locale: sv })}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Event Type</span>
-              <span className="font-medium capitalize">{bookingData.eventType}</span>
+              <span className="text-gray-600">Typ av evenemang</span>
+              <span className="font-medium capitalize">{
+                bookingData.eventType === 'wedding' ? 'Bröllop' :
+                bookingData.eventType === 'engagement' ? 'Förlovningsfest' :
+                bookingData.eventType === 'anniversary' ? 'Jubileum' :
+                bookingData.eventType === 'other' ? 'Annat firande' :
+                bookingData.eventType
+              }</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Guests</span>
-              <span className="font-medium">{bookingData.guestCount} people</span>
+              <span className="text-gray-600">Gäster</span>
+              <span className="font-medium">{bookingData.guestCount} personer</span>
             </div>
             <div className="flex justify-between pt-3 border-t">
-              <span className="text-lg font-semibold">Total</span>
+              <span className="text-lg font-semibold">Totalt</span>
               <span className="text-lg font-semibold">{bookingData.price} SEK</span>
             </div>
           </div>
@@ -142,7 +149,7 @@ export default function PaymentModalView({
               {isLoadingPayment ? (
                 <div className="flex flex-col items-center justify-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin text-purple-600 mb-4" />
-                  <p className="text-gray-600">Initializing secure payment...</p>
+                  <p className="text-gray-600">Förbereder säker betalning...</p>
                 </div>
               ) : paymentError ? (
                 <Alert className="mb-6 border-red-200 bg-red-50">
@@ -167,8 +174,8 @@ export default function PaymentModalView({
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-purple-100 mb-4">
                 <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Processing Payment</h3>
-              <p className="text-gray-600">Please wait while we confirm your payment...</p>
+              <h3 className="text-xl font-semibold mb-2">Bearbetar betalning</h3>
+              <p className="text-gray-600">Vänligen vänta medan vi bekräftar din betalning...</p>
             </div>
           )}
 
@@ -177,12 +184,12 @@ export default function PaymentModalView({
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
                 <CheckCircle className="h-8 w-8 text-green-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Payment Successful!</h3>
+              <h3 className="text-xl font-semibold mb-2">Betalning genomförd!</h3>
               <p className="text-gray-600 mb-6">
-                Your booking has been confirmed. Check your email for details.
+                Din bokning har bekräftats. Kolla din e-post för detaljer.
               </p>
               <Button onClick={onComplete} className="btn-premium rounded-xl">
-                Done
+                Klar
               </Button>
             </div>
           )}
@@ -192,16 +199,16 @@ export default function PaymentModalView({
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4">
                 <AlertCircle className="h-8 w-8 text-red-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Payment Failed</h3>
+              <h3 className="text-xl font-semibold mb-2">Betalning misslyckades</h3>
               <p className="text-gray-600 mb-6">
-                {paymentError || "Something went wrong. Please try again."}
+                {paymentError || "Något gick fel. Försök igen."}
               </p>
               <div className="space-y-3">
                 <Button onClick={onRetry} className="w-full btn-premium rounded-xl">
-                  Try Again
+                  Försök igen
                 </Button>
                 <Button onClick={onClose} variant="outline" className="w-full rounded-xl">
-                  Cancel
+                  Avbryt
                 </Button>
               </div>
             </div>
@@ -211,9 +218,9 @@ export default function PaymentModalView({
         {/* Security Notice */}
         <div className="px-8 pb-8">
           <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
-            <span>🔒 Secure payment powered by Stripe</span>
+            <span>🔒 Säker betalning via Stripe</span>
             <span>•</span>
-            <span>Your data is encrypted</span>
+            <span>Din data är krypterad</span>
           </div>
         </div>
       </div>

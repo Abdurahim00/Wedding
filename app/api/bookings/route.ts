@@ -91,22 +91,27 @@ export async function POST(request: NextRequest) {
     
     // Send confirmation email
     try {
-      await emailService.sendBookingConfirmation(booking, booking.email)
-      console.log('Confirmation email sent to:', booking.email)
+      console.log('Attempting to send email to:', booking.email)
+      const emailSent = await emailService.sendBookingConfirmation(booking, booking.email)
+      if (emailSent) {
+        console.log('✅ Confirmation email sent successfully to:', booking.email)
+      } else {
+        console.log('❌ Failed to send confirmation email to:', booking.email)
+      }
     } catch (error) {
-      console.error('Failed to send confirmation email:', error)
+      console.error('❌ Error sending confirmation email:', error)
       // Don't fail the booking if email fails
     }
     
-    // Broadcast the new booking
-    try {
-      await pusherServer.trigger('calendar-updates', 'booking-created', {
-        date: bookingDate.toISOString(),
-        bookingId: booking.id
-      })
-    } catch (error) {
-      console.error('Failed to broadcast booking:', error)
-    }
+    // Broadcast the new booking (disabled - using polling instead)
+    // try {
+    //   await pusherServer.trigger('calendar-updates', 'booking-created', {
+    //     date: bookingDate.toISOString(),
+    //     bookingId: booking.id
+    //   })
+    // } catch (error) {
+    //   console.error('Failed to broadcast booking:', error)
+    // }
     
     return NextResponse.json(booking)
   } catch (error) {
