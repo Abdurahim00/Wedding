@@ -2,17 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/src/lib/prisma'
 import { pusherServer } from '@/src/lib/pusher'
 import { emailService } from '@/src/services/emailService'
-import { withWeddingSchema } from '@/src/lib/db-utils'
 
 export async function GET() {
   try {
-    // Ensure connection
-    await prisma.$connect()
-    
-    const bookings = await withWeddingSchema(async () => {
-      return await prisma.booking.findMany({
-        orderBy: { createdAt: 'desc' }
-      })
+    const bookings = await prisma.booking.findMany({
+      orderBy: { createdAt: 'desc' }
     })
     
     return NextResponse.json(bookings)
@@ -50,8 +44,8 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // All database operations wrapped in withWeddingSchema
-    const booking = await withWeddingSchema(async () => {
+    // Create booking with validation
+    try {
       // Check if date is marked as unavailable
       const datePrice = await prisma.datePrice.findFirst({
         where: {
@@ -97,7 +91,15 @@ export async function POST(request: NextRequest) {
           status: data.status || 'pending'
         }
       })
-    })
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('not available')) {
+        return NextResponse.json({ error: error.message }, { status: 400 })
+      }
+      if (error instanceof Error && error.message.includes('already booked')) {
+        return NextResponse.json({ error: error.message }, { status: 400 })
+      }
+      throw error
+    }
     
     // Send confirmation email
     try {

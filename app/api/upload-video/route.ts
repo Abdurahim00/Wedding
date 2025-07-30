@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/src/lib/prisma'
-import { withWeddingSchema } from '@/src/lib/db-utils'
 import { uploadVideoToSupabase } from '@/src/lib/supabase-storage'
 
 export async function POST(request: NextRequest) {
@@ -37,21 +36,18 @@ export async function POST(request: NextRequest) {
     const videoUrl = await uploadVideoToSupabase(file)
     
     // Save video URL to database
-    await withWeddingSchema(async () => {
-      // Check if settings exist
-      const existingSettings = await prisma.venueSettings.findFirst()
-      
-      if (existingSettings) {
-        await prisma.venueSettings.update({
-          where: { id: existingSettings.id },
-          data: { videoUrl }
-        })
-      } else {
-        await prisma.venueSettings.create({
-          data: { videoUrl }
-        })
-      }
-    })
+    const existingSettings = await prisma.venueSettings.findFirst()
+    
+    if (existingSettings) {
+      await prisma.venueSettings.update({
+        where: { id: existingSettings.id },
+        data: { videoUrl }
+      })
+    } else {
+      await prisma.venueSettings.create({
+        data: { videoUrl }
+      })
+    }
     
     return NextResponse.json({
       success: true,
