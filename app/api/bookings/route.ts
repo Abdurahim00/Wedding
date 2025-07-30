@@ -6,6 +6,9 @@ import { withWeddingSchema } from '@/src/lib/db-utils'
 
 export async function GET() {
   try {
+    // Ensure connection
+    await prisma.$connect()
+    
     const bookings = await withWeddingSchema(async () => {
       return await prisma.booking.findMany({
         orderBy: { createdAt: 'desc' }
@@ -17,7 +20,8 @@ export async function GET() {
     console.error('Error fetching bookings:', error)
     return NextResponse.json({ 
       error: 'Failed to fetch bookings',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: error instanceof Error ? error.message : 'Unknown error',
+      stack: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : undefined) : undefined
     }, { status: 500 })
   }
 }
@@ -27,50 +31,16 @@ export async function POST(request: NextRequest) {
     const data = await request.json()
     const bookingDate = new Date(data.date)
     
+    // Ensure connection
+    await prisma.$connect()
+    
     // Server-side validation: Check if date is available
     const startOfDay = new Date(bookingDate)
     startOfDay.setHours(0, 0, 0, 0)
     const endOfDay = new Date(bookingDate)
     endOfDay.setHours(23, 59, 59, 999)
     
-    // Check if date is marked as unavailable
-    const datePrice = await prisma.datePrice.findFirst({
-      where: {
-        date: {
-          gte: startOfDay,
-          lte: endOfDay
-        }
-      }
-    })
-    
-    if (datePrice && !datePrice.isAvailable) {
-      return NextResponse.json(
-        { error: 'This date is not available for booking' },
-        { status: 400 }
-      )
-    }
-    
-    // Check for existing bookings
-    const existingBooking = await prisma.booking.findFirst({
-      where: {
-        date: {
-          gte: startOfDay,
-          lte: endOfDay
-        },
-        status: {
-          in: ['confirmed', 'pending']
-        }
-      }
-    })
-    
-    if (existingBooking) {
-      return NextResponse.json(
-        { error: 'This date is already booked' },
-        { status: 400 }
-      )
-    }
-    
-    // Check if past date
+    // Check if past date first (no DB needed)
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     if (bookingDate < today) {
@@ -80,19 +50,53 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Create booking only if all validations pass
-    const booking = await prisma.booking.create({
-      data: {
-        name: data.name,
-        email: data.email,
-        phone: data.phone,
-        guestCount: data.guestCount,
-        eventType: data.eventType,
-        specialRequests: data.specialRequests,
-        date: bookingDate,
-        price: data.price,
-        status: data.status || 'pending'
+    // All database operations wrapped in withWeddingSchema
+    const booking = await withWeddingSchema(async () => {
+      // Check if date is marked as unavailable
+      const datePrice = await prisma.datePrice.findFirst({
+        where: {
+          date: {
+            gte: startOfDay,
+            lte: endOfDay
+          }
+        }
+      })
+      
+      if (datePrice && !datePrice.isAvailable) {
+        throw new Error('This date is not available for booking')
       }
+      
+      // Check for existing bookings
+      const existingBooking = await prisma.booking.findFirst({
+        where: {
+          date: {
+            gte: startOfDay,
+            lte: endOfDay
+          },
+          status: {
+            in: ['confirmed', 'pending']
+          }
+        }
+      })
+      
+      if (existingBooking) {
+        throw new Error('This date is already booked')
+      }
+      
+      // Create booking only if all validations pass
+      return await prisma.booking.create({
+        data: {
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          guestCount: data.guestCount,
+          eventType: data.eventType,
+          specialRequests: data.specialRequests,
+          date: bookingDate,
+          price: data.price,
+          status: data.status || 'pending'
+        }
+      })
     })
     
     // Send confirmation email
@@ -122,6 +126,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(booking)
   } catch (error) {
     console.error('Error creating booking:', error)
-    return NextResponse.json({ error: 'Failed to create booking' }, { status: 500 })
+    
+    // Handle specific validation errors
+    if (error instanceof Error) {
+      if (error.message.includes('not available') || error.message.includes('already booked')) {
+        return NextResponse.json({ error: error.message }, { status: 400 })
+      }
+    }
+    
+    return NextResponse.json({ 
+      error: 'Failed to create booking',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 })
   }
 }

@@ -9,18 +9,21 @@ const prismaOptions = {
     db: {
       url: process.env.DATABASE_URL
     }
+  },
+  log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error']
+}
+
+// Create a custom PrismaClient that sets schema on every query
+class PrismaClientWithSchema extends PrismaClient {
+  async $connect() {
+    await super.$connect()
+    // Set schema after connecting
+    await this.$executeRaw`SET search_path TO wedding,public`
   }
 }
 
-export const prisma = global.prisma || new PrismaClient(prismaOptions)
+export const prisma = global.prisma || new PrismaClientWithSchema(prismaOptions)
 
 if (process.env.NODE_ENV !== 'production') {
   global.prisma = prisma
-}
-
-// Set search_path for wedding schema
-if (prisma) {
-  prisma.$executeRawUnsafe('SET search_path TO wedding,public').catch(() => {
-    // Ignore error on initialization
-  })
 }

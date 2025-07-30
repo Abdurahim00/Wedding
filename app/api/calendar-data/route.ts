@@ -15,6 +15,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid dates array' }, { status: 400 })
     }
     
+    // Ensure connection
+    await prisma.$connect()
+    
     // Process all dates in a single query
     const results = await withWeddingSchema(async () => {
       return await Promise.all(
@@ -109,6 +112,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ dates: results })
   } catch (error) {
     console.error('Error fetching calendar data:', error)
-    return NextResponse.json({ error: 'Failed to fetch calendar data' }, { status: 500 })
+    return NextResponse.json({ 
+      error: 'Failed to fetch calendar data',
+      details: error instanceof Error ? error.message : 'Unknown error',
+      stack: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : undefined) : undefined
+    }, { status: 500 })
   }
 }
