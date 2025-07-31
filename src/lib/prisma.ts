@@ -4,13 +4,10 @@ declare global {
   var prisma: PrismaClient | undefined
 }
 
-// TEMPORARY: Hardcode the database URL to test - using pooler
-const HARDCODED_DATABASE_URL = "postgresql://postgres.eijqprtljludapmpxbgh:Programmer4life!@aws-0-eu-north-1.pooler.supabase.com:6543/postgres?pgbouncer=true&schema=wedding&connection_limit=1"
-
 const prismaOptions = {
   datasources: {
     db: {
-      url: HARDCODED_DATABASE_URL
+      url: process.env.DATABASE_URL || "postgresql://postgres:Programmer4life!@db.eijqprtljludapmpxbgh.supabase.co:5432/postgres?schema=wedding"
     }
   },
   log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error']
