@@ -1,92 +1,93 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["multiSchema"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
-  schemas  = ["wedding"]
+  schemas   = ["wedding"]
 }
 
 model Booking {
-  @@schema("wedding")
   id              String   @id @default(cuid())
   name            String
   email           String
   phone           String
   guestCount      Int
   eventType       String
-  specialRequests String?  @db.Text
+  specialRequests String?
   date            DateTime @db.Timestamptz(6)
   price           Float
   status          String   @default("pending")
   createdAt       DateTime @default(now()) @db.Timestamptz(6)
   updatedAt       DateTime @updatedAt @db.Timestamptz(6)
-  
   payment         Payment?
-  
+
   @@index([date])
   @@index([status])
   @@index([email])
+  @@schema("wedding")
 }
 
 model Payment {
-  @@schema("wedding")
   id              String   @id @default(cuid())
   bookingId       String   @unique
   amount          Float
   stripePaymentId String?
   status          String   @default("pending")
   createdAt       DateTime @default(now()) @db.Timestamptz(6)
-  
   booking         Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  
+
   @@index([status])
   @@index([stripePaymentId])
+  @@schema("wedding")
 }
 
 model DatePrice {
-  @@schema("wedding")
-  id              String   @id @default(cuid())
-  date            DateTime @unique @db.Timestamptz(6)
-  price           Float
-  isAvailable     Boolean  @default(true)
-  createdAt       DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt       DateTime @updatedAt @db.Timestamptz(6)
-  
+  id          String   @id @default(cuid())
+  date        DateTime @unique @db.Timestamptz(6)
+  price       Float
+  createdAt   DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @db.Timestamptz(6)
+  isAvailable Boolean  @default(true)
+
   @@index([date])
+  @@schema("wedding")
 }
 
 model PricingRule {
+  id         String    @id @default(cuid())
+  name       String
+  type       String
+  price      Float
+  startDate  DateTime? @db.Timestamptz(6)
+  endDate    DateTime? @db.Timestamptz(6)
+  daysOfWeek Int[]
+  priority   Int       @default(0)
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt  DateTime  @updatedAt @db.Timestamptz(6)
+
   @@schema("wedding")
-  id              String   @id @default(cuid())
-  name            String
-  type            String   // 'weekend', 'weekday', 'season', 'holiday'
-  price           Float
-  startDate       DateTime? @db.Timestamptz(6)
-  endDate         DateTime? @db.Timestamptz(6)
-  daysOfWeek      Int[]    // 0-6 (Sunday-Saturday)
-  priority        Int      @default(0)
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt       DateTime @updatedAt @db.Timestamptz(6)
 }
 
 model Admin {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @db.Timestamptz(6)
+
   @@schema("wedding")
-  id              String   @id @default(cuid())
-  username        String   @unique
-  passwordHash    String
-  createdAt       DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt       DateTime @updatedAt @db.Timestamptz(6)
 }
 
 model VenueSettings {
+  id        String   @id @default(cuid())
+  videoUrl  String
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
   @@schema("wedding")
-  id              String   @id @default(cuid())
-  videoUrl        String   @db.Text
-  createdAt       DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt       DateTime @updatedAt @db.Timestamptz(6)
 }

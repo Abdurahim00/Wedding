@@ -1,23 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/src/lib/prisma'
+import { createClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
-    const settings = await prisma.venueSettings.findFirst()
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
     
-    if (!settings) {
-      // Create default settings if none exist
-      const defaultSettings = await prisma.venueSettings.create({
-        data: {
-          videoUrl: ''
-        }
-      })
-      return NextResponse.json(defaultSettings)
+    const { data: settings, error } = await supabase
+      .from('wedding.VenueSettings')
+      .select('*')
+      .single()
+    
+    if (error && error.code === 'PGRST116') {
+      // No settings exist, create default
+      const { data: newSettings } = await supabase
+        .from('wedding.VenueSettings')
+        .insert({ videoUrl: '' })
+        .select()
+        .single()
+      
+      return NextResponse.json(newSettings || { videoUrl: '' })
     }
     
-    return NextResponse.json(settings)
+    return NextResponse.json(settings || { videoUrl: '' })
   } catch (error) {
     console.error('Error fetching venue settings:', error)
     return NextResponse.json(

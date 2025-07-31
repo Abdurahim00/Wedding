@@ -21,14 +21,14 @@ export async function POST(request: NextRequest) {
         endOfDay.setHours(23, 59, 59, 999)
         
         const { data: datePrice } = await supabase
-          .from('DatePrice')
+          .from('wedding.DatePrice')
           .select('*')
           .gte('date', startOfDay.toISOString())
           .lte('date', endOfDay.toISOString())
           .single()
         
         const { data: bookings } = await supabase
-          .from('Booking')
+          .from('wedding.Booking')
           .select('id')
           .gte('date', startOfDay.toISOString())
           .lte('date', endOfDay.toISOString())
@@ -51,10 +51,12 @@ export async function POST(request: NextRequest) {
     )
     
     return NextResponse.json({ dates: results })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Calendar data error:', error)
     return NextResponse.json({ 
-      error: 'Failed to fetch calendar data'
+      error: 'Failed to fetch calendar data',
+      details: error?.message || 'Unknown error',
+      code: error?.code
     }, { status: 500 })
   }
 }
