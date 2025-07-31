@@ -4,23 +4,13 @@ declare global {
   var prisma: PrismaClient | undefined
 }
 
-// Get the database URL and add statement_cache_size=0 if not present
-function getDatabaseUrl() {
-  const url = process.env.DATABASE_URL
-  if (!url) return url
-  
-  // Add statement_cache_size=0 to prevent prepared statement errors with PgBouncer
-  if (!url.includes('statement_cache_size=')) {
-    const separator = url.includes('?') ? '&' : '?'
-    return `${url}${separator}statement_cache_size=0`
-  }
-  return url
-}
+// TEMPORARY: Hardcode the database URL to test - using pooler
+const HARDCODED_DATABASE_URL = "postgresql://postgres.eijqprtljludapmpxbgh:Programmer4life!@aws-0-eu-north-1.pooler.supabase.com:6543/postgres?pgbouncer=true&schema=wedding&connection_limit=1"
 
 const prismaOptions = {
   datasources: {
     db: {
-      url: getDatabaseUrl()
+      url: HARDCODED_DATABASE_URL
     }
   },
   log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error']
