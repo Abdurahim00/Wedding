@@ -7,10 +7,14 @@
       "maxDuration": 30
     }
   },
-  "buildCommand": "npm run build",
+  "buildCommand": "prisma generate && npm run build",
   "outputDirectory": ".next",
   "framework": "nextjs",
-  "installCommand": "npm install --force",
+  "installCommand": "npm install",
+  "env": {
+    "DATABASE_URL": "@database-url",
+    "DIRECT_URL": "@direct-url"
+  },
   "headers": [
     {
       "source": "/api/(.*)",

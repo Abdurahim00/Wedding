@@ -10,7 +10,7 @@ export async function GET() {
     
     // Test with Supabase client
     const { data, error } = await supabase
-      .from('wedding.Booking')
+      .from('Booking')
       .select('id')
       .limit(1)
     

@@ -11,22 +11,15 @@ export async function GET() {
     )
     
     const { data: settings, error } = await supabase
-      .from('wedding.VenueSettings')
-      .select('*')
+      .rpc('get_wedding_venue_settings')
       .single()
     
-    if (error && error.code === 'PGRST116') {
-      // No settings exist, create default
-      const { data: newSettings } = await supabase
-        .from('wedding.VenueSettings')
-        .insert({ videoUrl: '' })
-        .select()
-        .single()
-      
-      return NextResponse.json(newSettings || { videoUrl: '' })
+    if (error || !settings) {
+      // Return default if no settings exist
+      return NextResponse.json({ videoUrl: '' })
     }
     
-    return NextResponse.json(settings || { videoUrl: '' })
+    return NextResponse.json(settings)
   } catch (error) {
     console.error('Error fetching venue settings:', error)
     return NextResponse.json(

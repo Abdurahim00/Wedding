@@ -9,6 +9,7 @@ interface CalendarContextType {
   markDateUnavailable: (date: Date) => void
   markDateAvailable: (date: Date) => void
   isDateAvailable: (date: Date) => boolean
+  isLoading: boolean
   getDatePrice: (date: Date) => number
   refreshData: () => Promise<void>
 }
@@ -18,24 +19,32 @@ const CalendarContext = createContext<CalendarContextType | undefined>(undefined
 export function CalendarProvider({ children }: { children: ReactNode }) {
   const [unavailableDates, setUnavailableDates] = useState<Set<string>>(new Set())
   const [datePrices, setDatePrices] = useState<Map<string, number>>(new Map())
-  const [lastFetch, setLastFetch] = useState<number>(0)
+  const [isInitialLoading, setIsInitialLoading] = useState(true)
 
-  // Fetch all calendar data
-  const fetchCalendarData = async () => {
+  // Load ALL data for the next 6 months - like cinema bookings
+  const loadAllCalendarData = async () => {
     try {
-      // Only get current month and next month for better performance
+      setIsInitialLoading(true)
+      
       const dates: Date[] = []
       const today = new Date()
+      today.setHours(0, 0, 0, 0)
       
-      for (let monthOffset = 0; monthOffset < 2; monthOffset++) {
+      // Load 6 months of data (cinema style - they show ~3-6 months ahead)
+      for (let monthOffset = 0; monthOffset < 6; monthOffset++) {
         const targetMonth = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1)
         const lastDay = new Date(targetMonth.getFullYear(), targetMonth.getMonth() + 1, 0).getDate()
         
         for (let day = 1; day <= lastDay; day++) {
-          dates.push(new Date(targetMonth.getFullYear(), targetMonth.getMonth(), day))
+          const targetDate = new Date(targetMonth.getFullYear(), targetMonth.getMonth(), day)
+          // Only add future dates
+          if (targetDate >= today) {
+            dates.push(targetDate)
+          }
         }
       }
       
+      // Fetch ALL data in one go
       const calendarData = await api.getCalendarData(dates)
       
       const newUnavailable = new Set<string>()
@@ -50,25 +59,27 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
       
       setUnavailableDates(newUnavailable)
       setDatePrices(newPrices)
-      setLastFetch(Date.now())
+      setIsInitialLoading(false)
     } catch (error) {
-      console.error('Error fetching calendar data:', error)
+      console.error('Error loading calendar data:', error)
+      setIsInitialLoading(false)
     }
   }
 
-  // Initial fetch
+  // Load everything on mount
   useEffect(() => {
-    fetchCalendarData()
+    loadAllCalendarData()
   }, [])
 
-  // Poll for updates with reasonable frequency
-  useEffect(() => {
-    const interval = setInterval(() => {
-      fetchCalendarData()
-    }, 5000) // Poll every 5 seconds for good balance
-    
-    return () => clearInterval(interval)
-  }, [])
+  // Simple refresh function
+  const refreshData = async () => {
+    await loadAllCalendarData()
+  }
+
+  // No need for ensureMonthLoaded - everything is already loaded!
+  const ensureMonthLoaded = async () => {
+    // Do nothing - data is already loaded
+  }
 
   // Optimistic updates
   const markDateUnavailable = (date: Date) => {
@@ -93,17 +104,20 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
     today.setHours(0, 0, 0, 0)
     if (date < today) return false
     
-    // Check unavailable set
+    // If still loading, return true (optimistic - don't show as unavailable)
+    if (isInitialLoading) return true
+    
+    // Simple check - data is already loaded
     return !unavailableDates.has(dateKey)
+  }
+  
+  const isDateLoading = (): boolean => {
+    return isInitialLoading
   }
 
   const getDatePrice = (date: Date): number => {
     const dateKey = date.toDateString()
     return datePrices.get(dateKey) ?? 5000
-  }
-
-  const refreshData = async () => {
-    await fetchCalendarData()
   }
 
   return (
@@ -114,7 +128,8 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
       markDateAvailable,
       isDateAvailable,
       getDatePrice,
-      refreshData
+      refreshData,
+      isLoading: isInitialLoading
     }}>
       {children}
     </CalendarContext.Provider>

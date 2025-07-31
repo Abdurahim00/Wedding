@@ -35,6 +35,8 @@ export async function POST(request: NextRequest) {
     }
     
     // Upload to Supabase Storage
+    // Note: The experimental buffer.File warning is expected in Node.js 18
+    // and can be safely ignored as it doesn't affect functionality
     const videoUrl = await uploadVideoToSupabase(file)
     
     // Save video URL to database

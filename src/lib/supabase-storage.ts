@@ -12,6 +12,31 @@ export const uploadVideoToSupabase = async (file: File): Promise<string> => {
     const fileName = `${Date.now()}.${fileExt}`
     const filePath = `wedding-videos/${fileName}`
 
+    // First, check if the bucket exists
+    const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets()
+    
+    if (bucketsError) {
+      console.error('Error listing buckets:', bucketsError)
+      throw new Error('Failed to access storage buckets')
+    }
+
+    // Check if 'videos' bucket exists
+    const videosBucket = buckets.find(bucket => bucket.name === 'videos')
+    
+    if (!videosBucket) {
+      // Try to create the bucket
+      const { error: createError } = await supabase.storage.createBucket('videos', {
+        public: true,
+        allowedMimeTypes: ['video/mp4', 'video/webm', 'video/ogg'],
+        fileSizeLimit: 524288000 // 500MB in bytes
+      })
+      
+      if (createError) {
+        console.error('Error creating videos bucket:', createError)
+        throw new Error('Storage bucket not available. Please contact administrator.')
+      }
+    }
+
     // Upload to Supabase Storage
     const { data, error } = await supabase.storage
       .from('videos')
@@ -21,6 +46,7 @@ export const uploadVideoToSupabase = async (file: File): Promise<string> => {
       })
 
     if (error) {
+      console.error('Upload error:', error)
       throw error
     }
 

@@ -5,7 +5,7 @@ declare global {
 }
 
 // Use direct connection - NO POOLING
-const DATABASE_URL = process.env.DATABASE_URL || "postgresql://postgres:Programmer4life!@db.eijqprtljludapmpxbgh.supabase.co:5432/postgres?schema=wedding"
+const DATABASE_URL = process.env.DATABASE_URL
 
 export const prisma = global.prisma || new PrismaClient({
   datasources: {

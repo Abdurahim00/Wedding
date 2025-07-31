@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { ChevronLeftIcon, ChevronRightIcon, CalendarDays, Star } from "lucide-react"
 import { format } from "date-fns"
-import { useCalendarData } from "@/src/hooks/useCalendarData"
+import { useCalendar } from "@/src/contexts/CalendarContext"
 
 interface BookingCalendarViewProps {
   currentDate: Date
@@ -18,7 +18,9 @@ export default function BookingCalendarView({
   onDateSelect,
   onNavigateMonth
 }: BookingCalendarViewProps) {
-  const { isDateAvailable, getDatePrice } = useCalendarData(days)
+  const { isDateAvailable, getDatePrice, isLoading } = useCalendar()
+  
+  console.log('Calendar loading state:', isLoading)
   
   const isToday = (date: Date) => {
     const today = new Date()
@@ -92,6 +94,27 @@ export default function BookingCalendarView({
               return <div key={index} className="aspect-square" />
             }
 
+            // Show skeleton for ALL dates during loading
+            if (isLoading) {
+              const past = isPastDate(date)
+              const today = isToday(date)
+              const weekend = isWeekend(date)
+              
+              return (
+                <div
+                  key={index}
+                  className={`
+                    aspect-square rounded-2xl animate-pulse flex flex-col items-center justify-center
+                    ${past ? "bg-gray-50" : weekend ? "bg-purple-100" : "bg-gray-100"}
+                    ${today ? "ring-2 ring-purple-400 ring-offset-2 ring-offset-white/50" : ""}
+                  `}
+                >
+                  <span className="text-base text-gray-400">{date.getDate()}</span>
+                </div>
+              )
+            }
+
+            // Only check availability AFTER loading
             const available = isDateAvailable(date)
             const past = isPastDate(date)
             const today = isToday(date)

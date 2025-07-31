@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { useSupabaseRealtime } from "@/src/hooks/useSupabaseRealtime"
+import { CalendarProvider } from "@/src/contexts/CalendarContext"
 
 // Simple static functions - no hooks
 const getDaysInMonth = (date: Date): (Date | null)[] => {
@@ -176,10 +177,11 @@ export default function CleanDashboardView() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <HeaderView />
+    <CalendarProvider>
+      <div className="min-h-screen bg-white overflow-x-hidden">
+        <HeaderView />
 
-      <main className="pt-16">
+        <main className="pt-16 overflow-x-hidden">
         {/* Success Message */}
         {showSuccessMessage && (
           <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top duration-300">
@@ -210,9 +212,9 @@ export default function CleanDashboardView() {
           </div>
 
           {/* Mobile Layout */}
-          <div className="lg:hidden">
+          <div className="lg:hidden overflow-x-hidden">
             <VideoSectionView />
-            <div className="p-6 bg-gradient-to-br from-gray-50 to-white">
+            <div className="p-4 sm:p-6 bg-gradient-to-br from-gray-50 to-white overflow-x-hidden">
               <SimpleBookingCalendarView
                 currentDate={currentDate}
                 days={days}
@@ -477,6 +479,7 @@ export default function CleanDashboardView() {
           formatExpiryDate={(v: string) => v}
         />
       )}
-    </div>
+      </div>
+    </CalendarProvider>
   )
 }
