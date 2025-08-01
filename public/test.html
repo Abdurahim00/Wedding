@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>File Input Test</title>
+</head>
+<body>
+    <h1>Pure HTML File Input Test</h1>
+    
+    <h2>Test 1: Basic Input</h2>
+    <input type="file" onchange="alert('File selected: ' + this.files[0].name)">
+    
+    <h2>Test 2: With ID</h2>
+    <input type="file" id="test2" onchange="document.getElementById('result').innerText = 'File: ' + this.files[0].name">
+    <div id="result"></div>
+    
+    <h2>Test 3: Button Click</h2>
+    <button onclick="document.getElementById('hidden-input').click()">Click Me</button>
+    <input type="file" id="hidden-input" style="display: none;" onchange="alert('Hidden input worked!')">
+    
+    <script>
+        console.log('Page loaded');
+        
+        // Test if file inputs are being blocked
+        const testInput = document.createElement('input');
+        testInput.type = 'file';
+        console.log('Created input element:', testInput);
+        
+        // Check if click method exists
+        if (typeof testInput.click === 'function') {
+            console.log('Click method exists on file input');
+        } else {
+            console.log('WARNING: Click method does NOT exist on file input');
+        }
+    </script>
+</body>
+</html>

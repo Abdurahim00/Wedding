@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>System Diagnostic</title>
+</head>
+<body>
+    <h1>File Input Diagnostic</h1>
+    
+    <script>
+        // Check if File API is available
+        document.write('<h2>File API Support</h2>');
+        if (window.File && window.FileReader && window.FileList && window.Blob) {
+            document.write('<p style="color: green;">✓ File API is supported</p>');
+        } else {
+            document.write('<p style="color: red;">✗ File API is NOT supported</p>');
+        }
+        
+        // Check if input element can be created
+        document.write('<h2>Input Element Creation</h2>');
+        try {
+            const input = document.createElement('input');
+            input.type = 'file';
+            document.write('<p style="color: green;">✓ File input element created successfully</p>');
+            document.write('<p>Input type: ' + input.type + '</p>');
+            document.write('<p>Click method exists: ' + (typeof input.click === 'function') + '</p>');
+        } catch (e) {
+            document.write('<p style="color: red;">✗ Error creating file input: ' + e.message + '</p>');
+        }
+        
+        // Check browser info
+        document.write('<h2>Browser Information</h2>');
+        document.write('<p>User Agent: ' + navigator.userAgent + '</p>');
+        document.write('<p>Platform: ' + navigator.platform + '</p>');
+        
+        // Check if in iframe
+        document.write('<h2>Frame Check</h2>');
+        if (window.self !== window.top) {
+            document.write('<p style="color: yellow;">⚠ Running in iframe</p>');
+        } else {
+            document.write('<p style="color: green;">✓ Not in iframe</p>');
+        }
+        
+        // Check document.domain
+        document.write('<h2>Security Context</h2>');
+        document.write('<p>Protocol: ' + window.location.protocol + '</p>');
+        document.write('<p>Hostname: ' + window.location.hostname + '</p>');
+        try {
+            document.write('<p>Document domain: ' + document.domain + '</p>');
+        } catch (e) {
+            document.write('<p style="color: red;">Cannot access document.domain</p>');
+        }
+    </script>
+    
+    <h2>Manual Test</h2>
+    <p>If you can see this button, try clicking it:</p>
+    <input type="file" style="padding: 10px; border: 2px solid blue;">
+    
+    <h2>Console Test</h2>
+    <p>Open browser console (F12) and run:</p>
+    <code style="background: #f0f0f0; padding: 10px; display: block;">
+        document.createElement('input').type = 'file'
+    </code>
+</body>
+</html>
