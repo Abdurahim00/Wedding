@@ -73,6 +73,37 @@ export async function POST(request: NextRequest) {
     
     const createdBooking = booking[0] || booking
     
+    // Create booking add-ons if any
+    if (data.addOns && Object.keys(data.addOns).length > 0 && createdBooking) {
+      for (const [addOnId, quantity] of Object.entries(data.addOns)) {
+        if (quantity > 0) {
+          // Get add-on details
+          const { data: addOn } = await supabase
+            .rpc('get_wedding_addon', { p_id: addOnId })
+          
+          if (addOn && addOn.length > 0) {
+            // Calculate price based on type
+            const addOnItem = addOn[0]
+            let totalPrice = addOnItem.price
+            
+            if (addOnItem.priceType === 'per_person') {
+              // For per-person pricing, multiply by guest count
+              totalPrice = addOnItem.price * data.guestCount
+            }
+            
+            // Create booking add-on record using RPC
+            await supabase
+              .rpc('create_booking_addons', {
+                p_booking_id: createdBooking.id,
+                p_addon_id: addOnId,
+                p_quantity: quantity as number,
+                p_price: totalPrice
+              })
+          }
+        }
+      }
+    }
+    
     // Send confirmation email
     try {
       if (createdBooking) {

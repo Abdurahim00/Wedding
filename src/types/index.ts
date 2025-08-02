@@ -1,3 +1,14 @@
+export interface BookingAddOn {
+  id: string
+  addOnId: string
+  quantity: number
+  price: number
+  name: string
+  description?: string
+  priceType: 'fixed' | 'per_person'
+  unit?: string
+}
+
 export interface Booking {
   id?: string
   name: string
@@ -11,6 +22,7 @@ export interface Booking {
   status?: 'pending' | 'confirmed' | 'cancelled'
   createdAt?: Date
   updatedAt?: Date
+  addOns?: BookingAddOn[]
 }
 
 export interface Payment {

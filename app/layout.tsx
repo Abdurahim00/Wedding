@@ -3,8 +3,8 @@ import { ThemeProvider } from '@/components/theme-provider'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Mazzika Fest - Boka Bröllopslokal',
-  description: 'Boka din perfekta bröllopslokal hos Mazzika Fest',
+  title: 'Mazzika Fest - Boka Lokal för Bröllop & Event | Göteborg',
+  description: 'Boka lokal för bröllop, företagsevent, förlovning, födelsedag, student, kalas eller konferens. Kapacitet: 150 stående / 144 sittande. Transportgatan 37, Göteborg.',
 }
 
 export default function RootLayout({

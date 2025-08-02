@@ -1,14 +1,18 @@
 "use client"
 
 import type React from "react"
-import { X, Calendar, Users, Mail, Phone, Sparkles } from "lucide-react"
+import { useState, useEffect } from "react"
+import { X, Calendar, Users, Mail, Phone, Sparkles, Package, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Separator } from "@/components/ui/separator"
 import { format } from "date-fns"
 import { sv } from "date-fns/locale"
+import type { AddOn } from "@/src/models/AddOnModel"
 
 interface BookingModalViewProps {
   selectedDate: Date | null
@@ -22,9 +26,11 @@ interface BookingModalViewProps {
     specialRequests: string
   }
   datePrice?: number
+  selectedAddOns?: { [key: string]: number }
   onClose: () => void
   onSubmit: (e: React.FormEvent) => void
   onInputChange: (field: string, value: string) => void
+  onAddOnToggle?: (addOnId: string, quantity: number) => void
 }
 
 export default function BookingModalView({ 
@@ -32,10 +38,49 @@ export default function BookingModalView({
   isSubmitting,
   formData,
   datePrice,
+  selectedAddOns = {},
   onClose, 
   onSubmit,
-  onInputChange
+  onInputChange,
+  onAddOnToggle
 }: BookingModalViewProps) {
+  const [addOns, setAddOns] = useState<AddOn[]>([])
+  const [showAddOns, setShowAddOns] = useState(false)
+
+  useEffect(() => {
+    fetchAddOns()
+  }, [])
+
+  const fetchAddOns = async () => {
+    try {
+      const response = await fetch('/api/addons')
+      if (response.ok) {
+        const data = await response.json()
+        setAddOns(data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch add-ons:', error)
+    }
+  }
+
+  const calculateTotalPrice = () => {
+    let total = datePrice || 0
+    const guestCount = parseInt(formData.guestCount) || 1
+    
+    Object.entries(selectedAddOns).forEach(([addOnId, quantity]) => {
+      const addOn = addOns.find(a => a.id === addOnId)
+      if (addOn) {
+        if (addOn.priceType === 'per_person') {
+          // For per-person pricing, multiply by guest count and quantity
+          total += addOn.price * guestCount * quantity
+        } else {
+          // For fixed pricing, just multiply by quantity
+          total += addOn.price * quantity
+        }
+      }
+    })
+    return total
+  }
 
   if (!selectedDate) return null
 
@@ -62,9 +107,31 @@ export default function BookingModalView({
             <Calendar className="h-4 w-4" />
             <span className="font-medium">{format(selectedDate, "EEEE d MMMM yyyy", { locale: sv })}</span>
           </div>
-          {datePrice && (
-            <div className="text-2xl font-bold text-gray-900">{datePrice} SEK</div>
-          )}
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Grundpris:</span>
+              <span className="font-medium">{datePrice || 0} SEK</span>
+            </div>
+            {Object.keys(selectedAddOns).length > 0 && (
+              <>
+                {Object.entries(selectedAddOns).map(([addOnId, quantity]) => {
+                  const addOn = addOns.find(a => a.id === addOnId)
+                  if (!addOn || quantity === 0) return null
+                  return (
+                    <div key={addOnId} className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">{addOn.name} x{quantity}:</span>
+                      <span>{addOn.price * quantity} SEK</span>
+                    </div>
+                  )
+                })}
+                <Separator className="my-2" />
+              </>
+            )}
+            <div className="flex items-center justify-between">
+              <span className="text-lg font-semibold">Totalt:</span>
+              <span className="text-2xl font-bold text-gray-900">{calculateTotalPrice()} SEK</span>
+            </div>
+          </div>
         </div>
 
         {/* Form */}
@@ -152,6 +219,101 @@ export default function BookingModalView({
               className="mt-1 resize-none"
             />
           </div>
+
+          {/* Add-ons Section */}
+          {addOns.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <Package className="h-4 w-4" />
+                  Tilläggstjänster
+                </Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowAddOns(!showAddOns)}
+                  className="text-xs"
+                >
+                  {showAddOns ? 'Dölj' : 'Visa'} tillägg
+                </Button>
+              </div>
+              
+              {showAddOns && (
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {addOns.map((addOn) => {
+                    const quantity = selectedAddOns[addOn.id] || 0
+                    const guestCount = parseInt(formData.guestCount) || 1
+                    const itemTotal = addOn.priceType === 'per_person' 
+                      ? addOn.price * guestCount * quantity
+                      : addOn.price * quantity
+                    
+                    return (
+                      <div key={addOn.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <Checkbox
+                            id={`addon-${addOn.id}`}
+                            checked={quantity > 0}
+                            onCheckedChange={(checked) => {
+                              if (onAddOnToggle) {
+                                onAddOnToggle(addOn.id, checked ? 1 : 0)
+                              }
+                            }}
+                          />
+                          <div>
+                            <Label htmlFor={`addon-${addOn.id}`} className="font-medium cursor-pointer">
+                              {addOn.name}
+                            </Label>
+                            {addOn.description && (
+                              <p className="text-xs text-gray-600">{addOn.description}</p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="text-right">
+                            <span className="text-sm font-medium">
+                              {addOn.price} SEK
+                              {addOn.priceType === 'per_person' && (
+                                <span className="text-xs text-gray-600"> {addOn.unit || 'per person'}</span>
+                              )}
+                            </span>
+                            {quantity > 0 && addOn.priceType === 'per_person' && (
+                              <div className="text-xs text-gray-600">
+                                Totalt: {itemTotal} SEK ({guestCount} gäster)
+                              </div>
+                            )}
+                          </div>
+                          {quantity > 0 && (
+                            <div className="flex items-center gap-1">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                className="h-6 w-6"
+                                onClick={() => onAddOnToggle && onAddOnToggle(addOn.id, Math.max(0, quantity - 1))}
+                              >
+                                -
+                              </Button>
+                              <span className="w-8 text-center text-sm">{quantity}</span>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                className="h-6 w-6"
+                                onClick={() => onAddOnToggle && onAddOnToggle(addOn.id, quantity + 1)}
+                              >
+                                +
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="pt-4 flex gap-3">
             <Button

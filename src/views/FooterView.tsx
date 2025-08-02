@@ -26,7 +26,7 @@ export default function FooterView() {
             <p className="text-sm text-gray-500 flex items-center justify-center gap-1">
               © {currentYear} Mazzika Fest. Skapad med
               <Heart className="w-4 h-4 text-red-500 fill-red-500" />
-              i Stockholm
+              i Göteborg
             </p>
           </div>
         </div>

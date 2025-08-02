@@ -422,16 +422,6 @@ export default function DashboardView() {
                   </div>
                 </div>
 
-                <div className="glass-morphism rounded-3xl p-8">
-                  <h3 className="text-xl font-semibold mb-4">Schedule a Tour</h3>
-                  <p className="text-gray-600 mb-6">
-                    Experience the beauty of Mazzika Fest firsthand. Book a private tour with our 
-                    wedding specialists and explore our stunning venues, gardens, and facilities.
-                  </p>
-                  <Button variant="outline" className="w-full rounded-xl py-4">
-                    Book a Tour
-                  </Button>
-                </div>
               </div>
             </div>
           </div>

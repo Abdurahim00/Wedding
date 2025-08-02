@@ -187,7 +187,7 @@ export class EmailService {
       <h3>Kontaktinformation</h3>
       <p>Om du har några frågor eller behöver göra ändringar i din bokning, tveka inte att kontakta oss:</p>
       <ul>
-        <li>Telefon: 0735136002</li>
+        <li>Telefon: 073-513 60 02</li>
         <li>E-post: info@mazzikafest.se</li>
         <li>Kontorstider: Mån-Fre 09:00-18:00, Lör-Sön 10:00-16:00</li>
       </ul>

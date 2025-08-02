@@ -12,6 +12,15 @@ import { format } from 'date-fns'
 import { sv } from 'date-fns/locale'
 import type { Booking } from '@/src/types'
 import { Skeleton } from '@/components/ui/skeleton'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Eye } from 'lucide-react'
 
 export default function BookingsManagementView() {
   const store = useStore()
@@ -19,6 +28,7 @@ export default function BookingsManagementView() {
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [loading, setLoading] = useState(true)
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
 
   // Fetch bookings from API on mount
   useEffect(() => {
@@ -31,6 +41,10 @@ export default function BookingsManagementView() {
       const response = await fetch('/api/bookings')
       if (response.ok) {
         const data = await response.json()
+        console.log('Fetched bookings:', data)
+        // Check if any bookings have addOns
+        const bookingsWithAddons = data.filter((b: any) => b.addOns && b.addOns.length > 0)
+        console.log('Bookings with add-ons:', bookingsWithAddons)
         setBookings(data)
       }
     } catch (error) {
@@ -117,10 +131,9 @@ export default function BookingsManagementView() {
                 <TableHead>Datum</TableHead>
                 <TableHead>Namn</TableHead>
                 <TableHead>E-post</TableHead>
-                <TableHead>Telefon</TableHead>
                 <TableHead>Gäster</TableHead>
-                <TableHead>Evenemangstyp</TableHead>
                 <TableHead>Pris</TableHead>
+                <TableHead>Tillägg</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Åtgärder</TableHead>
               </TableRow>
@@ -133,10 +146,9 @@ export default function BookingsManagementView() {
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-40" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-28" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                       <TableCell><Skeleton className="h-6 w-20" /></TableCell>
                       <TableCell><Skeleton className="h-8 w-28" /></TableCell>
                     </TableRow>
@@ -144,7 +156,7 @@ export default function BookingsManagementView() {
                 </>
               ) : sortedBookings.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     Inga bokningar hittades
                   </TableCell>
                 </TableRow>
@@ -154,33 +166,110 @@ export default function BookingsManagementView() {
                     <TableCell>{format(new Date(booking.date), 'd MMM yyyy', { locale: sv })}</TableCell>
                     <TableCell className="font-medium">{booking.name}</TableCell>
                     <TableCell>{booking.email}</TableCell>
-                    <TableCell>{booking.phone}</TableCell>
                     <TableCell>{booking.guestCount}</TableCell>
-                    <TableCell className="capitalize">{
-                      booking.eventType === 'wedding' ? 'Bröllop' :
-                      booking.eventType === 'engagement' ? 'Förlovningsfest' :
-                      booking.eventType === 'anniversary' ? 'Jubileum' :
-                      booking.eventType === 'other' ? 'Annat' :
-                      booking.eventType
-                    }</TableCell>
                     <TableCell>{booking.price.toLocaleString('sv-SE')} SEK</TableCell>
+                    <TableCell>
+                      {booking.addOns && booking.addOns.length > 0 ? (
+                        <span className="text-sm">{booking.addOns.length} tillägg</span>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">-</span>
+                      )}
+                    </TableCell>
                     <TableCell>{getStatusBadge(booking.status)}</TableCell>
                     <TableCell>
-                      <Select
-                        value={booking.status}
-                        onValueChange={(value: Booking['status']) => 
-                          handleStatusChange(booking.id!, value)
-                        }
-                      >
-                        <SelectTrigger className="w-[120px]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pending">Väntande</SelectItem>
-                          <SelectItem value="confirmed">Bekräftad</SelectItem>
-                          <SelectItem value="cancelled">Avbokad</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <div className="flex items-center gap-2">
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setSelectedBooking(booking)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </DialogTrigger>
+                          {selectedBooking?.id === booking.id && (
+                            <DialogContent className="max-w-2xl">
+                              <DialogHeader>
+                                <DialogTitle>Bokningsdetaljer</DialogTitle>
+                                <DialogDescription>
+                                  Bokning för {booking.name} - {format(new Date(booking.date), 'd MMMM yyyy', { locale: sv })}
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <p className="text-sm font-medium text-muted-foreground">Kontaktinformation</p>
+                                    <p className="font-medium">{booking.name}</p>
+                                    <p className="text-sm">{booking.email}</p>
+                                    <p className="text-sm">{booking.phone}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-medium text-muted-foreground">Evenemangsdetaljer</p>
+                                    <p className="text-sm">
+                                      {booking.eventType === 'wedding' ? 'Bröllop' :
+                                       booking.eventType === 'engagement' ? 'Förlovningsfest' :
+                                       booking.eventType === 'anniversary' ? 'Jubileum' :
+                                       'Annat evenemang'}
+                                    </p>
+                                    <p className="text-sm">{booking.guestCount} gäster</p>
+                                    <p className="font-medium">{booking.price.toLocaleString('sv-SE')} SEK</p>
+                                  </div>
+                                </div>
+                                
+                                {booking.specialRequests && (
+                                  <div>
+                                    <p className="text-sm font-medium text-muted-foreground mb-2">Särskilda önskemål</p>
+                                    <p className="text-sm bg-muted p-3 rounded">{booking.specialRequests}</p>
+                                  </div>
+                                )}
+                                
+                                {booking.addOns && booking.addOns.length > 0 && (
+                                  <div>
+                                    <p className="text-sm font-medium text-muted-foreground mb-2">Tilläggstjänster</p>
+                                    <div className="space-y-2">
+                                      {booking.addOns.map((addOn) => (
+                                        <div key={addOn.id} className="flex justify-between items-start p-3 bg-muted rounded">
+                                          <div className="flex-1">
+                                            <p className="font-medium">{addOn.name}</p>
+                                            {addOn.description && (
+                                              <p className="text-sm text-muted-foreground">{addOn.description}</p>
+                                            )}
+                                          </div>
+                                          <div className="text-right">
+                                            <p className="font-medium">
+                                              {addOn.price.toLocaleString('sv-SE')} SEK
+                                              {addOn.priceType === 'per_person' && (
+                                                <span className="text-sm text-muted-foreground"> {addOn.unit || 'per person'}</span>
+                                              )}
+                                            </p>
+                                            <p className="text-sm text-muted-foreground">Antal: {addOn.quantity}</p>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </DialogContent>
+                          )}
+                        </Dialog>
+                        <Select
+                          value={booking.status}
+                          onValueChange={(value: Booking['status']) => 
+                            handleStatusChange(booking.id!, value)
+                          }
+                        >
+                          <SelectTrigger className="w-[120px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pending">Väntande</SelectItem>
+                            <SelectItem value="confirmed">Bekräftad</SelectItem>
+                            <SelectItem value="cancelled">Avbokad</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))

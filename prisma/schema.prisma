@@ -11,19 +11,20 @@ datasource db {
 }
 
 model Booking {
-  id              String   @id @default(cuid())
+  id              String           @id @default(cuid())
   name            String
   email           String
   phone           String
   guestCount      Int
   eventType       String
   specialRequests String?
-  date            DateTime @db.Timestamptz(6)
+  date            DateTime         @db.Timestamptz(6)
   price           Float
-  status          String   @default("pending")
-  createdAt       DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt       DateTime @updatedAt @db.Timestamptz(6)
+  status          String           @default("pending")
+  createdAt       DateTime         @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime         @updatedAt @db.Timestamptz(6)
   payment         Payment?
+  addOns          BookingAddOn[]
 
   @@index([date])
   @@index([status])
@@ -89,5 +90,34 @@ model VenueSettings {
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @db.Timestamptz(6)
 
+  @@schema("wedding")
+}
+
+model AddOn {
+  id          String         @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  isActive    Boolean        @default(true)
+  createdAt   DateTime       @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime       @updatedAt @db.Timestamptz(6)
+  bookings    BookingAddOn[]
+
+  @@schema("wedding")
+}
+
+model BookingAddOn {
+  id        String   @id @default(cuid())
+  bookingId String
+  addOnId   String
+  quantity  Int      @default(1)
+  price     Float
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  addOn     AddOn    @relation(fields: [addOnId], references: [id])
+
+  @@unique([bookingId, addOnId])
+  @@index([bookingId])
+  @@index([addOnId])
   @@schema("wedding")
 }

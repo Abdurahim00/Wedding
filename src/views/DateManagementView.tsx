@@ -9,11 +9,12 @@ import { Calendar } from '@/components/ui/calendar'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { DollarSign, CalendarDays, CalendarX, Settings } from 'lucide-react'
+import { DollarSign, CalendarDays, CalendarX, Settings, Package } from 'lucide-react'
 import { format, addDays, isWeekend, startOfMonth, endOfMonth } from 'date-fns'
 import { sv } from 'date-fns/locale'
 import { DatePriceModel } from '@/src/models/DatePriceModel'
 import { Skeleton } from '@/components/ui/skeleton'
+import AddOnsManagementView from './AddOnsManagementView'
 
 
 export default function DateManagementView() {
@@ -161,9 +162,13 @@ export default function DateManagementView() {
 
   return (
     <Tabs defaultValue="single" className="space-y-4">
-      <TabsList className="grid w-full grid-cols-2">
+      <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="single">Enskilt datum</TabsTrigger>
         <TabsTrigger value="bulk">Bulkoperationer</TabsTrigger>
+        <TabsTrigger value="addons">
+          <Package className="h-4 w-4 mr-2" />
+          Add-ons
+        </TabsTrigger>
       </TabsList>
       
       <TabsContent value="single">
@@ -360,6 +365,10 @@ export default function DateManagementView() {
             </div>
           </CardContent>
         </Card>
+      </TabsContent>
+      
+      <TabsContent value="addons">
+        <AddOnsManagementView />
       </TabsContent>
     </Tabs>
   )

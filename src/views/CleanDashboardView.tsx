@@ -58,6 +58,7 @@ export default function CleanDashboardView() {
     eventType: "wedding",
     specialRequests: "",
   })
+  const [selectedAddOns, setSelectedAddOns] = useState<{ [key: string]: number }>({})
 
   // Calculate days without memoization for now
   const days = getDaysInMonth(currentDate)
@@ -84,10 +85,41 @@ export default function CleanDashboardView() {
     setBookingFormData(prev => ({ ...prev, [field]: value }))
   }
 
-  const handleBookingSubmit = (e: React.FormEvent) => {
+  const handleAddOnToggle = (addOnId: string, quantity: number) => {
+    setSelectedAddOns(prev => {
+      if (quantity === 0) {
+        const { [addOnId]: _, ...rest } = prev
+        return rest
+      }
+      return { ...prev, [addOnId]: quantity }
+    })
+  }
+
+  const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     if (!selectedDate) return
+
+    // Calculate total price including add-ons
+    let totalPrice = getDatePrice(selectedDate)
+    
+    // Fetch add-on prices and calculate total
+    if (Object.keys(selectedAddOns).length > 0) {
+      try {
+        const response = await fetch('/api/addons')
+        if (response.ok) {
+          const addOns = await response.json()
+          Object.entries(selectedAddOns).forEach(([addOnId, quantity]) => {
+            const addOn = addOns.find((a: any) => a.id === addOnId)
+            if (addOn) {
+              totalPrice += addOn.price * quantity
+            }
+          })
+        }
+      } catch (error) {
+        console.error('Error fetching add-on prices:', error)
+      }
+    }
 
     // Create booking object
     const booking: Booking = {
@@ -99,7 +131,7 @@ export default function CleanDashboardView() {
       eventType: bookingFormData.eventType as Booking['eventType'],
       specialRequests: bookingFormData.specialRequests,
       date: selectedDate,
-      price: getDatePrice(selectedDate),
+      price: totalPrice,
       status: 'pending',
       createdAt: new Date(),
       updatedAt: new Date()
@@ -131,7 +163,8 @@ export default function CleanDashboardView() {
           specialRequests: currentBooking.specialRequests,
           date: currentBooking.date,
           price: currentBooking.price,
-          status: 'confirmed'
+          status: 'confirmed',
+          addOns: selectedAddOns
         })
       })
 
@@ -232,7 +265,7 @@ export default function CleanDashboardView() {
             <div className="text-center mb-16">
               <h2 className="text-4xl lg:text-5xl font-serif text-gray-900 mb-4">Om Mazzika Fest</h2>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Där tidlös elegans möter modern lyx, skapar den perfekta bakgrunden för din speciella dag
+                Låt er hänföras av vår fina restaurang under ert nästa minnesvärda evenemang
               </p>
             </div>
 
@@ -245,10 +278,11 @@ export default function CleanDashboardView() {
                     </div>
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold mb-2">25+ år av excellens</h3>
+                    <h3 className="text-xl font-semibold mb-2">Perfekt för alla evenemang</h3>
                     <p className="text-gray-600">
-                      I över två decennier har vi skapat oförglömliga bröllopsupplevelser, 
-                      arrangerat över 5 000 fester och skapat minnen som varar livet ut.
+                      Söker ni efter lokaler för ert bröllop, företagsevent, förlovning, födelsedag, 
+                      student, familjeträff, kalas eller konferens? Vi har alltid tagit bokning, 
+                      njutning och god stämning på största allvar.
                     </p>
                   </div>
                 </div>
@@ -260,10 +294,10 @@ export default function CleanDashboardView() {
                     </div>
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold mb-2">Prisbelönt lokal</h3>
+                    <h3 className="text-xl font-semibold mb-2">Premium service & mat</h3>
                     <p className="text-gray-600">
-                      Erkänd som regionens främsta bröllopsplats, med flera utmärkelser 
-                      för enastående service och arkitektonisk skönhet.
+                      Vi skapar, med gästens önskemål, spännande menyer och tillagning i premiumklass. 
+                      Låt vår lyhörda stab ta hand om er, och skapa ett minne för livet.
                     </p>
                   </div>
                 </div>
@@ -275,10 +309,10 @@ export default function CleanDashboardView() {
                     </div>
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold mb-2">Engagerat team</h3>
+                    <h3 className="text-xl font-semibold mb-2">Kapacitet & parkering</h3>
                     <p className="text-gray-600">
-                      Vårt erfarna team av bröllopsspecialister säkerställer att varje detalj är perfekt, 
-                      från intima sammankomster till stora fester.
+                      Vår lokal rymmer upp till 150 personer stående eller 144 personer sittande. 
+                      Goda parkeringsmöjligheter finns i närheten.
                     </p>
                   </div>
                 </div>
@@ -290,10 +324,10 @@ export default function CleanDashboardView() {
                     </div>
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold mb-2">Bildsnöa miljöer</h3>
+                    <h3 className="text-xl font-semibold mb-2">Självklart val för arrangemang</h3>
                     <p className="text-gray-600">
-                      Från vårdade trädgårdar till eleganta festsalar, varje hörn av Mazzika Fest 
-                      erbjuder fantastiska bakgrunder för dina bröllopsfotografier.
+                      Det är en stor ära för oss att presentera Mazzika som kommer bli ett självklart 
+                      säte för arrangemang. Varmt välkomna!
                     </p>
                   </div>
                 </div>
@@ -395,7 +429,7 @@ export default function CleanDashboardView() {
                       <MapPin className="w-5 h-5 text-purple-600 mt-1" />
                       <div>
                         <p className="font-medium">Mazzika Fest</p>
-                        <p className="text-gray-600">Festvägen 123, Stockholm</p>
+                        <p className="text-gray-600">Transportgatan 37, 422 46 Göteborg</p>
                       </div>
                     </div>
                     
@@ -403,7 +437,7 @@ export default function CleanDashboardView() {
                       <Phone className="w-5 h-5 text-purple-600 mt-1" />
                       <div>
                         <p className="font-medium">Telefon</p>
-                        <p className="text-gray-600">0735136002</p>
+                        <p className="text-gray-600">073-513 60 02</p>
                       </div>
                     </div>
                     
@@ -426,16 +460,6 @@ export default function CleanDashboardView() {
                   </div>
                 </div>
 
-                <div className="glass-morphism rounded-3xl p-8">
-                  <h3 className="text-xl font-semibold mb-4">Boka en visning</h3>
-                  <p className="text-gray-600 mb-6">
-                    Upplev skönheten av Mazzika Fest på plats. Boka en privat visning med våra 
-                    bröllopsspecialister och utforska våra fantastiska lokaler, trädgårdar och faciliteter.
-                  </p>
-                  <Button variant="outline" className="w-full rounded-xl py-4">
-                    Boka visning
-                  </Button>
-                </div>
               </div>
             </div>
           </div>
@@ -451,9 +475,11 @@ export default function CleanDashboardView() {
           isSubmitting={false}
           formData={bookingFormData}
           datePrice={selectedDate ? getDatePrice(selectedDate) : undefined}
+          selectedAddOns={selectedAddOns}
           onClose={() => setShowBookingModal(false)}
           onSubmit={handleBookingSubmit}
           onInputChange={handleBookingInputChange}
+          onAddOnToggle={handleAddOnToggle}
         />
       )}
 
