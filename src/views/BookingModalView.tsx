@@ -85,32 +85,32 @@ export default function BookingModalView({
   if (!selectedDate) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md animate-in fade-in zoom-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/50">
+      <div className="bg-white w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-md sm:rounded-2xl shadow-xl overflow-y-auto animate-in fade-in zoom-in duration-200">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-semibold text-gray-900">Reservera ditt datum</h2>
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b sticky top-0 bg-white z-10">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Reservera ditt datum</h2>
           <Button 
             variant="ghost" 
             size="icon" 
             onClick={onClose} 
-            className="rounded-full hover:bg-gray-100"
+            className="rounded-full hover:bg-gray-100 h-10 w-10 sm:h-9 sm:w-9"
             aria-label="Stäng"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5 sm:h-4 sm:w-4" />
           </Button>
         </div>
 
         {/* Selected Date Display */}
-        <div className="px-6 pt-6">
-          <div className="flex items-center gap-2 text-gray-700 mb-1">
-            <Calendar className="h-4 w-4" />
-            <span className="font-medium">{format(selectedDate, "EEEE d MMMM yyyy", { locale: sv })}</span>
+        <div className="px-4 sm:px-6 pt-4 sm:pt-6">
+          <div className="flex items-center gap-2 text-gray-700 mb-3">
+            <Calendar className="h-5 w-5" />
+            <span className="font-medium text-base">{format(selectedDate, "EEEE d MMMM yyyy", { locale: sv })}</span>
           </div>
-          <div className="space-y-1">
+          <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Grundpris:</span>
-              <span className="font-medium">{datePrice || 0} SEK</span>
+              <span className="text-base text-gray-600">Grundpris:</span>
+              <span className="font-medium text-base">{datePrice || 0} SEK</span>
             </div>
             {Object.keys(selectedAddOns).length > 0 && (
               <>
@@ -118,16 +118,16 @@ export default function BookingModalView({
                   const addOn = addOns.find(a => a.id === addOnId)
                   if (!addOn || quantity === 0) return null
                   return (
-                    <div key={addOnId} className="flex items-center justify-between text-sm">
+                    <div key={addOnId} className="flex items-center justify-between text-base">
                       <span className="text-gray-600">{addOn.name} x{quantity}:</span>
                       <span>{addOn.price * quantity} SEK</span>
                     </div>
                   )
                 })}
-                <Separator className="my-2" />
+                <Separator className="my-3" />
               </>
             )}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between pt-2 border-t border-gray-200">
               <span className="text-lg font-semibold">Totalt:</span>
               <span className="text-2xl font-bold text-gray-900">{calculateTotalPrice()} SEK</span>
             </div>
@@ -135,22 +135,22 @@ export default function BookingModalView({
         </div>
 
         {/* Form */}
-        <form onSubmit={onSubmit} className="p-6 space-y-4">
+        <form onSubmit={onSubmit} className="p-4 sm:p-6 space-y-6">
           <div>
-            <Label htmlFor="name" className="text-sm font-medium text-gray-700">Fullständigt namn</Label>
+            <Label htmlFor="name" className="text-base font-medium text-gray-700 mb-2 block">Fullständigt namn</Label>
             <Input
               id="name"
               value={formData.name}
               onChange={(e) => onInputChange('name', e.target.value)}
               placeholder="Ditt namn"
               required
-              className="mt-1"
+              className="h-12 text-base"
             />
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
             <div>
-              <Label htmlFor="email" className="text-sm font-medium text-gray-700">E-post</Label>
+              <Label htmlFor="email" className="text-base font-medium text-gray-700 mb-2 block">E-post</Label>
               <Input
                 id="email"
                 type="email"
@@ -158,12 +158,12 @@ export default function BookingModalView({
                 onChange={(e) => onInputChange('email', e.target.value)}
                 placeholder="epost@exempel.se"
                 required
-                className="mt-1"
+                className="h-12 text-base"
               />
             </div>
 
             <div>
-              <Label htmlFor="phone" className="text-sm font-medium text-gray-700">Telefon</Label>
+              <Label htmlFor="phone" className="text-base font-medium text-gray-700 mb-2 block">Telefon</Label>
               <Input
                 id="phone"
                 type="tel"
@@ -171,14 +171,14 @@ export default function BookingModalView({
                 onChange={(e) => onInputChange('phone', e.target.value)}
                 placeholder="Telefonnummer"
                 required
-                className="mt-1"
+                className="h-12 text-base"
               />
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
             <div>
-              <Label htmlFor="guests" className="text-sm font-medium text-gray-700">Antal gäster</Label>
+              <Label htmlFor="guests" className="text-base font-medium text-gray-700 mb-2 block">Antal gäster</Label>
               <Input
                 id="guests"
                 type="number"
@@ -188,20 +188,21 @@ export default function BookingModalView({
                 onChange={(e) => onInputChange('guestCount', e.target.value)}
                 placeholder="150"
                 required
-                className="mt-1"
+                className="h-12 text-base"
               />
             </div>
 
             <div>
-              <Label htmlFor="eventType" className="text-sm font-medium text-gray-700">Typ av evenemang</Label>
+              <Label htmlFor="eventType" className="text-base font-medium text-gray-700 mb-2 block">Typ av evenemang</Label>
               <Select value={formData.eventType} onValueChange={(value) => onInputChange('eventType', value)}>
-                <SelectTrigger className="mt-1">
+                <SelectTrigger className="h-12 text-base">
                   <SelectValue placeholder="Välj typ av evenemang" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="wedding">Bröllop</SelectItem>
-                  <SelectItem value="engagement">Förlovningsfest</SelectItem>
+                  <SelectItem value="reception">Mottagning</SelectItem>
                   <SelectItem value="anniversary">Jubileum</SelectItem>
+                  <SelectItem value="corporate">Företagsevent</SelectItem>
                   <SelectItem value="other">Annat firande</SelectItem>
                 </SelectContent>
               </Select>
@@ -209,23 +210,23 @@ export default function BookingModalView({
           </div>
 
           <div>
-            <Label htmlFor="requests" className="text-sm font-medium text-gray-700">Speciella önskemål (valfritt)</Label>
+            <Label htmlFor="requests" className="text-base font-medium text-gray-700 mb-2 block">Speciella önskemål (valfritt)</Label>
             <Textarea
               id="requests"
               value={formData.specialRequests}
               onChange={(e) => onInputChange('specialRequests', e.target.value)}
               placeholder="Eventuella speciella önskemål..."
-              rows={3}
-              className="mt-1 resize-none"
+              rows={4}
+              className="resize-none text-base min-h-[100px]"
             />
           </div>
 
           {/* Add-ons Section */}
           {addOns.length > 0 && (
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                  <Package className="h-4 w-4" />
+                <Label className="text-base font-medium text-gray-700 flex items-center gap-2">
+                  <Package className="h-5 w-5" />
                   Tilläggstjänster
                 </Label>
                 <Button
@@ -233,14 +234,14 @@ export default function BookingModalView({
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowAddOns(!showAddOns)}
-                  className="text-xs"
+                  className="text-sm px-3 py-2 h-10"
                 >
                   {showAddOns ? 'Dölj' : 'Visa'} tillägg
                 </Button>
               </div>
               
               {showAddOns && (
-                <div className="space-y-2 max-h-48 overflow-y-auto">
+                <div className="space-y-3 max-h-64 overflow-y-auto">
                   {addOns.map((addOn) => {
                     const quantity = selectedAddOns[addOn.id] || 0
                     const guestCount = parseInt(formData.guestCount) || 1
@@ -249,7 +250,7 @@ export default function BookingModalView({
                       : addOn.price * quantity
                     
                     return (
-                      <div key={addOn.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div key={addOn.id} className="flex flex-col gap-4 p-4 bg-gray-50 rounded-lg">
                         <div className="flex items-center gap-3">
                           <Checkbox
                             id={`addon-${addOn.id}`}
@@ -259,47 +260,48 @@ export default function BookingModalView({
                                 onAddOnToggle(addOn.id, checked ? 1 : 0)
                               }
                             }}
+                            className="h-5 w-5"
                           />
-                          <div>
-                            <Label htmlFor={`addon-${addOn.id}`} className="font-medium cursor-pointer">
+                          <div className="flex-1">
+                            <Label htmlFor={`addon-${addOn.id}`} className="font-medium cursor-pointer text-base">
                               {addOn.name}
                             </Label>
                             {addOn.description && (
-                              <p className="text-xs text-gray-600">{addOn.description}</p>
+                              <p className="text-sm text-gray-600 mt-1">{addOn.description}</p>
                             )}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <div className="text-right">
-                            <span className="text-sm font-medium">
+                        <div className="flex items-center justify-between">
+                          <div className="text-left">
+                            <span className="text-base font-medium">
                               {addOn.price} SEK
                               {addOn.priceType === 'per_person' && (
-                                <span className="text-xs text-gray-600"> {addOn.unit || 'per person'}</span>
+                                <span className="text-sm text-gray-600"> {addOn.unit || 'per person'}</span>
                               )}
                             </span>
                             {quantity > 0 && addOn.priceType === 'per_person' && (
-                              <div className="text-xs text-gray-600">
+                              <div className="text-sm text-gray-600 mt-1">
                                 Totalt: {itemTotal} SEK ({guestCount} gäster)
                               </div>
                             )}
                           </div>
                           {quantity > 0 && (
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-2">
                               <Button
                                 type="button"
                                 variant="outline"
                                 size="icon"
-                                className="h-6 w-6"
+                                className="h-10 w-10"
                                 onClick={() => onAddOnToggle && onAddOnToggle(addOn.id, Math.max(0, quantity - 1))}
                               >
                                 -
                               </Button>
-                              <span className="w-8 text-center text-sm">{quantity}</span>
+                              <span className="w-12 text-center text-base font-medium">{quantity}</span>
                               <Button
                                 type="button"
                                 variant="outline"
                                 size="icon"
-                                className="h-6 w-6"
+                                className="h-10 w-10"
                                 onClick={() => onAddOnToggle && onAddOnToggle(addOn.id, quantity + 1)}
                               >
                                 +
@@ -315,19 +317,19 @@ export default function BookingModalView({
             </div>
           )}
 
-          <div className="pt-4 flex gap-3">
+          <div className="pt-6 flex gap-4">
             <Button
               type="button"
               variant="outline"
               onClick={onClose}
-              className="flex-1"
+              className="flex-1 py-4 text-base font-medium"
             >
               Avbryt
             </Button>
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+              className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white py-4 text-base font-medium"
             >
               {isSubmitting ? 'Bearbetar...' : 'Fortsätt'}
             </Button>

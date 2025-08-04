@@ -77,12 +77,13 @@ function CheckoutForm({ booking, onSuccess, onError }: StripePaymentFormProps) {
             }
           }
         }}
+        className="min-h-[200px]"
       />
       
       <Button 
         type="submit" 
         disabled={!stripe || isProcessing} 
-        className="w-full btn-premium rounded-xl py-6 text-base"
+        className="w-full btn-premium rounded-xl py-4 sm:py-6 text-base"
       >
         {isProcessing ? (
           <>
